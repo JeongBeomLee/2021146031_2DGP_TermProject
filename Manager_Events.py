@@ -6,7 +6,7 @@ from Characters_Player import state, direction
 
 quitMassage = False
 
-def check_bottom(player):
+def check_bottom(player): # 바닥체크
     pass
 
 def events(player):
@@ -32,8 +32,11 @@ def events(player):
                     player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_w:
-                player.state = state['jump']
-                player.jumpSpeed = 10
+                if player.state != state['jump']:
+                    player.state = state['jump']
+                    player.jumpSpeed = 10
+                    player.idleFrame = 0
+                    player.runFrame = 0
                 pass
             
             elif event.key == SDLK_s:
@@ -54,13 +57,14 @@ def events(player):
                     player.idleFrame = 0 
             elif event.key == SDLK_w:
                 pass
-            
             elif event.key == SDLK_s:
                 pass
         elif event.type == SDL_MOUSEMOTION:
             if player.x > event.x:
                 player.direction = direction['left']
+                flip = 'h'
             elif player.x <= event.x:
                 player.direction = direction['right']
+                flip = 'n'
             pass
     pass
