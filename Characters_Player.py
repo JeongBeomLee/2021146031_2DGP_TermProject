@@ -1,20 +1,26 @@
 from pico2d import *
 
+# 캐릭터 행위 변경은 여기서
+
 state = {'idle' : 0, 'run' : 1, 'jump' : 2}
 direction = {'left' : 0, 'right' : 1}
 
 class Player:
     def __init__(self): # 생성자
-        self.x, self.y = 800, 450 # 캐릭터 초기 위치
+        self.x, self.y = 800, 50 # 캐릭터 초기 위치
         self.idleFrame = 0
         self.runFrame = 0
         self.state = state['idle']
         self.direction = direction['right']
         self.speedLR = 0
+        self.jumpSpeed = 0
         self.image = load_image('resources/images/Characters/Player/Costume/common/player_idle_right.png') # 캐릭터 이미지
 
     def update(self): # 업데이트 함수
         if self.state == state['idle']: # idle상태 일 때
+            if self.speedLR != 0: # 점프 완료 후 idle 이미지를 띄울지 run 이미지를 띄울지 결정해줌
+                self.state = state['run']
+                pass
             if self.direction == direction['left']: # 방향 체크후 방향에 맞는 이미지 출력과 Frame증가
                 self.image = load_image('resources/images/Characters/Player/Costume/common/player_idle_left.png')
             elif self.direction == direction['right']:
@@ -27,6 +33,24 @@ class Player:
             elif self.direction == direction['right']:
                 self.image = load_image('resources/images/Characters/Player/Costume/common/player_run_right.png')
             self.runFrame = (self.runFrame + 1) % 8
+            
+        if self.state == state['jump']:
+            if self.direction == direction['left']:
+                self.image = load_image('resources/images/Characters/Player/Costume/common/player_jump_left.png')
+            elif self.direction == direction['right']:
+                self.image = load_image('resources/images/Characters/Player/Costume/common/player_jump_right.png')
+                
+            if self.jumpSpeed > 0:
+                F = (0.5 * 1 * (self.jumpSpeed**2))
+            else:
+                F = - (0.5 * 1 * (self.jumpSpeed**2))
+                
+            self.y += round(F)
+            self.jumpSpeed -= 1
+            if self.y < 50:
+                self.y = 50
+                self.state = state['idle']
+                self.jumpSpeed = 10
         self.x += self.speedLR * 18
 
         # fill more
@@ -37,4 +61,9 @@ class Player:
 
         if self.state == state['run']:
             self.image.clip_draw(self.runFrame * 17, 0, 17, 20, self.x, self.y, 85, 100)
+            
+        if self.state == state['jump']:
+            self.image.clip_draw(0, 0, 17, 20, self.x, self.y, 85, 100)
+            
+
         

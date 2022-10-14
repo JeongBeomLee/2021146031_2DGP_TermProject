@@ -1,8 +1,13 @@
 from pico2d import *
 import Characters_Player
-from Characters_Player import Player, state, direction
+from Characters_Player import state, direction
+
+# 캐릭터 속성 변경은 여기서
 
 quitMassage = False
+
+def check_bottom(player):
+    pass
 
 def events(player):
     global state
@@ -16,15 +21,19 @@ def events(player):
         elif event.type == SDL_KEYDOWN:
             if event.key == SDLK_d: # 오른쪽 키 눌림
                 player.speedLR += 1
-                player.state = state['run'] # 상태 변경
-                player.runFrame = 0 # 프레임 초기화
+                if player.state != state['jump']:
+                    player.state = state['run'] # 상태 변경
+                    player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_a: # 왼쪽 키 눌림
                 player.speedLR -= 1
-                player.state = state['run']
-                player.runFrame = 0 
+                if player.state != state['jump']:
+                    player.state = state['run'] # 상태 변경
+                    player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_w:
+                player.state = state['jump']
+                player.jumpSpeed = 10
                 pass
             
             elif event.key == SDLK_s:
@@ -35,14 +44,14 @@ def events(player):
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_d:
                 player.speedLR -= 1
-                player.state = state['idle']
-                player.idleFrame = 0 
-                
+                if player.state != state['jump']:
+                    player.state = state['idle']
+                    player.idleFrame = 0 
             elif event.key == SDLK_a:
                 player.speedLR += 1
-                player.state = state['idle']
-                player.idleFrame = 0 
-                
+                if player.state != state['jump']:
+                    player.state = state['idle']
+                    player.idleFrame = 0 
             elif event.key == SDLK_w:
                 pass
             
