@@ -1,17 +1,16 @@
 from pico2d import *
 import Characters_Player
+import Weapons_Short
+
 from Characters_Player import state, direction
+from Weapons_Short import deg
 
 # 캐릭터 속성 변경은 여기서
 
 quitMassage = False
 
-def check_bottom(player): # 바닥체크
-    pass
-
 def events(player):
-    global state
-    global direction
+    global state, direction, deg
     global quitMassage
 
     events = get_events()
@@ -32,9 +31,11 @@ def events(player):
                     player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_w:
-                if player.state != state['jump']:
+                # if player.state != state['jump']:
+                if player.jumpCount != 2:
                     player.state = state['jump']
                     player.jumpSpeed = 10
+                    player.jumpCount += 1
                     player.idleFrame = 0
                     player.runFrame = 0
                 pass
@@ -60,11 +61,7 @@ def events(player):
             elif event.key == SDLK_s:
                 pass
         elif event.type == SDL_MOUSEMOTION:
-            if player.x > event.x:
-                player.direction = direction['left']
-                flip = 'h'
-            elif player.x <= event.x:
-                player.direction = direction['right']
-                flip = 'n'
+            Characters_Player.getMouse(event.x, event.y)
+            Weapons_Short.getMouse(event.x, event.y)
             pass
     pass
