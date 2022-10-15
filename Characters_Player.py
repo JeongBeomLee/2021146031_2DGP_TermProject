@@ -8,7 +8,7 @@ mouse_x, mouse_y = 0, 0
 
 class Player:
     def __init__(self): # 생성자
-        self.x, self.y = 800, 50 # 캐릭터 초기 위치
+        self.x, self.y = 800, 400 # 캐릭터 초기 위치
         self.idleFrame = 0
         self.runFrame = 0
         self.state = state['idle']
@@ -50,8 +50,8 @@ class Player:
             self.y += round(F)
             self.jumpSpeed -= 1
             
-            if self.y < 50: # 바닥에 닿았을 때
-                self.y = 50
+            if self.y < 400: # 바닥에 닿았을 때
+                self.y = 400
                 self.state = state['idle']
                 self.jumpSpeed = 10
                 self.jumpCount = 0

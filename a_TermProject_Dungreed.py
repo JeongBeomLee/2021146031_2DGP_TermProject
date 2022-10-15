@@ -19,7 +19,7 @@ def draw():
     global player, hand, weapon
     
     if weapon.backrender:
-        weapon.draw(player)    
+        weapon.draw(player)
         
     player.draw()
     

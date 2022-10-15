@@ -10,37 +10,32 @@ class shortSword:
     def __init__(self, player):
         self.x = player.x
         self.y = player.y
+        #self.image = load_image('resources/images/weapon/MeleeWeapon/testsword.png')
         self.image = load_image('resources/images/weapon/MeleeWeapon/ShortSword.png')
         self.backrender = True
         pass
     
     def update(self, player):
-        global direction, deg, mouse_x, mouse_y, backrender
+        global direction, deg, mouse_x, mouse_y
         
+        deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi + 100
         if player.direction == direction['left']:
-            deg = atan2(-((player.y + 900) - mouse_y), (player.x - mouse_x)) * 180 / pi
             if self.backrender:
-                self.x = player.x - 50
-                self.y = player.y + 7
+                self.x = player.x - 15
+                self.y = player.y - 10
             else:
                 self.x = player.x - 10
-                self.y = player.y - 50
+                self.y = player.y - 40
             
         elif player.direction == direction['right']:
-            deg = atan2(-(mouse_y - (player.y + 900)), (mouse_x - player.x)) * 180 / pi
             if self.backrender:
-                self.x = player.x + 50
-                self.y = player.y + 7
+                self.x = player.x + 15
+                self.y = player.y - 10
             else:
                 self.x = player.x + 10
-                self.y = player.y - 50
+                self.y = player.y - 40
             
-        # if backrender == False:
-        #     deg -= 140
-            
-        #print('playerX : %d, playerY : %d \nmouseX : %d, mouseY : %d\ndeg : %f', (player.x,player.y,mouse_x,mouse_y,deg))
-        
-        #deg = atan2(-(player.y - mouse_y), (player.x - mouse_x))
+        #print(deg)
         pass
     
     def draw(self, player):
@@ -48,18 +43,16 @@ class shortSword:
         
         if player.direction == direction['left']:
             if self.backrender:
-                self.image.clip_composite_draw(0, 0, 19, 7, radians(deg), 'h', self.x, self.y, 95, 35)
+                self.image.clip_composite_draw(0, 0, 38, 14, radians(deg), 'h', self.x, self.y, 155, 70)
             else:
-                self.image.clip_composite_draw(0, 0, 19, 7, radians(deg), 'n', self.x, self.y, 95, 35)
+                self.image.clip_composite_draw(0, 0, 38, 14, radians(deg), 'n', self.x, self.y, 155, 70)
                 
-                
-            
         elif player.direction == direction['right']:
             if self.backrender:
-                self.image.clip_composite_draw(0, 0, 19, 7, radians(deg), 'n', self.x, self.y, 95, 35)
+                self.image.clip_composite_draw(0, 0, 38, 14, radians(deg), 'n', self.x, self.y, 155, 70)
             else:
-                self.image.clip_composite_draw(0, 0, 19, 7, radians(deg), 'h', self.x, self.y, 95, 35)
-            
+                self.image.clip_composite_draw(0, 0, 38, 14, radians(deg), 'h', self.x, self.y, 155, 70)
+        #print(deg)
         pass
     
 def getMouse(x, y):
