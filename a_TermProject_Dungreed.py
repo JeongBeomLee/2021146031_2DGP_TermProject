@@ -2,12 +2,14 @@ from pico2d import *
 import Manager_Events
 import Characters_Player_hand
 import Weapons_Short
+from Weapons_Short import weaponSort
 
 open_canvas(1600, 900)
 
 player = Manager_Events.Characters_Player.Player()
 hand = Characters_Player_hand.Hand(player)
-weapon = Weapons_Short.shortSword(player)
+#weapon = Weapons_Short.shortSword(player)
+weapon = Weapons_Short.pickaxeRed(player)
 
 def update():
     global player, hand
@@ -16,17 +18,16 @@ def update():
     weapon.update(player)
 
 def draw():
-    global player, hand, weapon
+    global player, hand, weapon, weaponSort
     
     if weapon.backrender:
-        weapon.draw(player)
-        
+            weapon.draw(player)
     player.draw()
-    
     if not weapon.backrender:
-        weapon.draw(player)
-    hand.draw(player)
+            weapon.draw(player)
     
+    if not weapon.sort == weaponSort['sickle']:
+        hand.draw(player)
 
 while(not Manager_Events.quitMassage):
     update()

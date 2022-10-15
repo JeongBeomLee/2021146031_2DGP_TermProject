@@ -3,13 +3,14 @@ import Characters_Player
 import Weapons_Short
 
 from Characters_Player import state, direction
+from Weapons_Short import weaponSort
 
 # 캐릭터 속성 변경은 여기서
 
 quitMassage = False
 
 def events(player, weapon):
-    global state, direction, deg, backrender
+    global state, direction, deg, backrender, weaponSort
     global quitMassage
 
     events = get_events()
@@ -68,5 +69,9 @@ def events(player, weapon):
         
         elif event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
-                weapon.backrender = not weapon.backrender
+                if weapon.sort == weaponSort['sword']:
+                    weapon.backrender = not weapon.backrender
+                if weapon.sort == weaponSort['sickle']:
+                    weapon.isAttack = True
+                    pass
     pass
