@@ -16,10 +16,17 @@ def update():
     weapon.update(player)
 
 def draw():
-    global player, hand
+    global player, hand, weapon
+    
+    if weapon.backrender:
+        weapon.draw(player)    
+        
     player.draw()
+    
+    if not weapon.backrender:
+        weapon.draw(player)
     hand.draw(player)
-    weapon.draw(player)
+    
 
 while(not Manager_Events.quitMassage):
     update()
@@ -27,6 +34,6 @@ while(not Manager_Events.quitMassage):
     draw()
     update_canvas()
     delay(0.07)
-    Manager_Events.events(player) # 이벤트 처리
+    Manager_Events.events(player, weapon) # 이벤트 처리
     
 close_canvas()

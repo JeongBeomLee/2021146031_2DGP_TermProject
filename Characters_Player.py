@@ -79,6 +79,7 @@ class Player:
                 
 def getMouse(x, y):
     global mouse_x, mouse_y
+    
     mouse_x = x
     mouse_y = y
         
