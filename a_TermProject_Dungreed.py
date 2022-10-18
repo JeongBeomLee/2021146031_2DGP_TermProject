@@ -11,23 +11,28 @@ hand = Characters_Player_hand.Hand(player)
 #weapon = Weapons_Short.shortSword(player)
 weapon = Weapons_Short.pickaxeRed(player)
 
+
 def update():
     global player, hand
     player.update()
     hand.update(player)
     weapon.update(player)
+    #weapon.effect.update()
 
 def draw():
     global player, hand, weapon, weaponSort
     
     if weapon.backrender:
             weapon.draw(player)
+            
     player.draw()
+    
     if not weapon.backrender:
             weapon.draw(player)
-    
     if not weapon.sort == weaponSort['sickle']:
         hand.draw(player)
+        
+    #weapon.effect.draw(weapon, player) 
 
 while(not Manager_Events.quitMassage):
     update()

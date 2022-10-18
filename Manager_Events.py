@@ -1,12 +1,12 @@
 from pico2d import *
 import Characters_Player
 import Weapons_Short
+import Effects_ShortWeapon
 
 from Characters_Player import state, direction
 from Weapons_Short import weaponSort
 
 # 캐릭터 속성 변경은 여기서
-
 quitMassage = False
 
 def events(player, weapon):
@@ -73,5 +73,5 @@ def events(player, weapon):
                     weapon.backrender = not weapon.backrender
                 if weapon.sort == weaponSort['sickle']:
                     weapon.isAttack = True
-                    pass
+                    weapon.appendEffect(player)
     pass
