@@ -25,6 +25,11 @@ class Hand:
                 self.x = player.x + 30
             elif player.direction == direction['right']:
                 self.x = player.x - 30
+        if player.state == state['dash']:
+            if player.direction == direction['left']:
+                self.x = player.x + 30
+            elif player.direction == direction['right']:
+                self.x = player.x - 30
         self.y = player.y - 25
         pass
     

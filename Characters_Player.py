@@ -2,9 +2,10 @@ from pico2d import *
 
 # 캐릭터 행위 변경은 여기서
 
-state = {'idle' : 0, 'run' : 1, 'jump' : 2}
+state = {'idle' : 0, 'run' : 1, 'jump' : 2, 'dash' : 3}
 direction = {'left' : 0, 'right' : 1}
 mouse_x, mouse_y = 0, 0
+
 
 class Player:
     def __init__(self): # 생성자
@@ -16,7 +17,10 @@ class Player:
         self.speedLR = 0
         self.jumpSpeed = 0
         self.jumpCount = 0
+        self.dashCount = 0
         self.image = load_image('resources/images/Characters/Player/Costume/common/player_idle.png') # 캐릭터 이미지
+        self.dx, self.dy = 0, 0
+        # SDL_IntersectRect(self.rect, )
 
     def update(self): # 업데이트 함수
         global mouse_x, mouse_y
@@ -56,6 +60,17 @@ class Player:
                 self.jumpSpeed = 10
                 self.jumpCount = 0
         self.x += self.speedLR * 18
+        
+        if self.state == state['dash']:
+            if self.dashCount == 3:
+                self.state = state['jump']
+                self.dashCount = 0
+            self.image = load_image('resources/images/Characters/Player/Costume/common/player_jump.png')
+            self.x += self.dx
+            self.y += self.dy
+            self.dashCount += 1
+            
+            
 
     def draw(self): # 그리기 함수
         # 프레임 위치부터 w 25, h 20만큼 x, y에 그린다
@@ -72,6 +87,12 @@ class Player:
                 self.image.clip_composite_draw(self.runFrame * 17, 0, 17, 20, 0, 'n', self.x, self.y, 85, 100)
             
         if self.state == state['jump']:
+            if self.direction == direction['left']:
+                self.image.clip_composite_draw(0, 0, 17, 20, 0, 'h', self.x, self.y, 85, 100)
+            if self.direction == direction['right']:
+                self.image.clip_composite_draw(0, 0, 17, 20, 0, 'n', self.x, self.y, 85, 100)
+                
+        if self.state == state['dash']:
             if self.direction == direction['left']:
                 self.image.clip_composite_draw(0, 0, 17, 20, 0, 'h', self.x, self.y, 85, 100)
             if self.direction == direction['right']:

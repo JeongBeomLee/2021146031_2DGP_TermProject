@@ -21,18 +21,18 @@ def events(player, weapon):
         elif event.type == SDL_KEYDOWN:
             if event.key == SDLK_d: # 오른쪽 키 눌림
                 player.speedLR += 1
-                if player.state != state['jump']:
+                if player.state != state['jump'] and player.state != state['dash']:
                     player.state = state['run'] # 상태 변경
                     player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_a: # 왼쪽 키 눌림
                 player.speedLR -= 1
-                if player.state != state['jump']:
+                if player.state != state['jump'] and player.state != state['dash']:
                     player.state = state['run'] # 상태 변경
                     player.runFrame = 0 # 프레임 초기화
                 
             elif event.key == SDLK_w:
-                if player.jumpCount != 2:
+                if player.jumpCount != 2 and player.state != state['dash']:
                     player.state = state['jump']
                     player.jumpSpeed = 10
                     player.jumpCount += 1
@@ -49,12 +49,12 @@ def events(player, weapon):
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_d:
                 player.speedLR -= 1
-                if player.state != state['jump']:
+                if player.state != state['jump'] and player.state != state['dash']:
                     player.state = state['idle']
                     player.idleFrame = 0 
             elif event.key == SDLK_a:
                 player.speedLR += 1
-                if player.state != state['jump']:
+                if player.state != state['jump'] and player.state != state['dash']:
                     player.state = state['idle']
                     player.idleFrame = 0 
             elif event.key == SDLK_w:
@@ -72,6 +72,14 @@ def events(player, weapon):
                 if weapon.sort == weaponSort['sword']:
                     weapon.backrender = not weapon.backrender
                 if weapon.sort == weaponSort['sickle']:
-                    weapon.isAttack = True
-                    weapon.appendEffect(player)
+                    if not weapon.isAttack:
+                        weapon.isAttack = True
+                        weapon.appendEffect(player)
+                        
+            if event.button == SDL_BUTTON_RIGHT:
+                if not player.state == state['dash']:
+                    player.state = state['dash']
+                player.dashCount = 0
+                player.dx, player.dy = ((event.x-player.x)/math.sqrt((event.x-player.x)** 2+(event.y-player.y) ** 2) * 100,
+                          -(event.y-player.y)/math.sqrt((event.x-player.x)** 2+(event.y-player.y) ** 2) * 100)
     pass

@@ -15,6 +15,7 @@ class RedPickaxeSwing:
         self.image = load_image('resources/images/weapon/MeleeWeapon/RedPickaxeSwing.png')
         self.frame = 0
         self.isOn = True
+        self.rectImage = load_image('resources/images/weapon/MeleeWeapon/RedPickaxeSwingRect.png')
         if player.direction == direction['left']:
             self.direction = 0
         if player.direction == direction['right']:
@@ -35,7 +36,10 @@ class RedPickaxeSwing:
         if self.isOn:
             if self.direction == 0:
                 self.image.clip_composite_draw(self.frame * 22, 0, 22, 56, radians(self.deg), 'n', self.x, self.y, 110, 280)
+                #self.rectImage.clip_composite_draw(0, 0, 110, 280, radians(self.deg), 'n', self.x, self.y, 110, 280)
             elif self.direction == 1:
                 self.image.clip_composite_draw(self.frame * 22, 0, 22, 56, radians(self.deg), 'h', self.x, self.y, 110, 280)
+                #self.rectImage.clip_composite_draw(0, 0, 110, 280, radians(self.deg), 'h', self.x, self.y, 110, 280)
+                
         pass
     
