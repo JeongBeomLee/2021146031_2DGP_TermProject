@@ -2,7 +2,7 @@ from pico2d import *
 import math
 import game_framework
 import weapons
-import effects
+import player_hand
 
 
 # Player Run Speed
@@ -30,44 +30,6 @@ weaponSort = {'sword' : 0, 'sickle' : 1, 'pistol' : 2, 'lightbringer' : 3}
 
 mouse_x, mouse_y = 0, 0
 deg = 0
-
-class Hand:
-    image = None
-    
-    def __init__(hand, player):
-        hand.x = player.x - 35
-        hand.y = player.y - 25
-        if Hand.image == None:
-            Hand.image = load_image('resources/images/Characters/Player/Costume/common/player_hand.png')
-        
-    def update(hand, player):
-        global direction
-        global state
-        if player.state == state['IDLE']:
-            if player.direction == direction['LEFT']:
-                hand.x = player.x + 35
-            elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 35
-        if player.state == state['RUN']:
-            if player.direction == direction['LEFT']:
-                hand.x = player.x + 35
-            elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 35
-        if player.state == state['JUMP']:
-            if player.direction == direction['LEFT']:
-                hand.x = player.x + 30
-            elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 30
-        if player.state == state['DASH']:
-            if player.direction == direction['LEFT']:
-                hand.x = player.x + 30
-            elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 30
-        hand.y = player.y - 25
-        pass
-    
-    def draw(hand):
-        hand.image.clip_draw(0, 0, 3, 3, hand.x, hand.y, 15, 15)
         
 class Player:
     idleImage = None
@@ -96,8 +58,8 @@ class Player:
         #### 위치 관련 변수 ####
         player.x          = 800
         player.y          = 200
-        player.after_x     = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.after_y     = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.after_x    = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.after_y    = [0, 0, 0, 0, 0, 0, 0, 0]
         player.f_opacify  = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         player.after_isOn = [0, 0, 0, 0, 0, 0, 0, 0]
         player.frame      = 0
@@ -116,9 +78,9 @@ class Player:
         # player.weaponSort = weaponSort['sickle']
         # player.weapon     = Weapons_Short.pickaxeRed()
         
-        player.hand             = Hand(player)
+        player.hand             = player_hand.Hand(player)
         player.weaponSort = weaponSort['sword']
-        player.weapon        = weapons.shortSword()
+        player.weapon        = weapons.ShortSword()
 
 
     def update(player):
@@ -258,13 +220,13 @@ class Player:
             #### 무기 바꿔주기 ####
             if event.key == SDLK_1:
                 player.weaponSort = weaponSort['sword']
-                player.weapon = weapons.shortSword()
+                player.weapon = weapons.ShortSword()
             if event.key == SDLK_2:
                 player.weaponSort = weaponSort['sickle']
-                player.weapon = weapons.pickaxeRed()
+                player.weapon = weapons.PickaxeRed()
             if event.key == SDLK_3:
                 player.weaponSort = weaponSort['pistol']
-                player.weapon = weapons.pistol()
+                player.weapon = weapons.Pistol()
             if event.key == SDLK_4:
                 player.weaponSort = weaponSort['lightbringer']
                 player.weapon = weapons.LightBringer()
@@ -322,7 +284,7 @@ class Player:
         elif event.type == SDL_MOUSEMOTION:
             mouse_x = event.x
             mouse_y = event.y
-            weapons.getMouse(event.x, event.y)
+            weapons.get_Mouse(event.x, event.y)
             
         #### 캐릭터 공격 ####
         elif event.type == SDL_MOUSEBUTTONDOWN:
@@ -330,15 +292,15 @@ class Player:
                 if player.weaponSort == weaponSort['sword']: 
                     player.weapon.isAttack = True
                     player.weapon.backrender = not player.weapon.backrender
-                    player.weapon.appendEffect(player)
+                    player.weapon.append_Effect(player)
                 elif player.weaponSort == weaponSort['sickle']: # 곡괭이
                     player.weapon.isAttack = True 
-                    player.weapon.appendEffect(player)
+                    player.weapon.append_Effect(player)
                 elif player.weaponSort == weaponSort['lightbringer']: # 활
                     player.weapon.isAttack = True
                 elif player.weaponSort == weaponSort['pistol']:
                     player.weapon.isAttack = True
-                    player.weapon.appendEffect(player)
+                    player.weapon.append_Effect(player)
                     
             #### 캐릭터 대쉬 ####
             if event.button == SDL_BUTTON_RIGHT:
@@ -356,7 +318,7 @@ class Player:
                 if player.weaponSort == weaponSort['lightbringer']: # 활
                     dx, dy = ((mouse_x - player.weapon.x) / math.sqrt((mouse_x - player.weapon.x)**2 + (900 - mouse_y - player.weapon.y) ** 2) * 45,
                            (900 - mouse_y - player.weapon.y) / math.sqrt((mouse_x - player.weapon.x)**2 + (900 - mouse_y - player.weapon.y)**2) * 45)
-                    player.weapon.shootArrow(dx, dy, player)
+                    player.weapon.shoot_Arrow(dx, dy, player)
                     player.weapon.isAttack = False
                     player.weapon.frame = 0
             

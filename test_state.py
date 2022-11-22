@@ -48,10 +48,10 @@ def resume():
     pass
 
 def test_self():
-    import stage1_state
+    import test_state
 
     pico2d.open_canvas()
-    game_framework.run(stage1_state)
+    game_framework.run(test_state)
     pico2d.clear_canvas()
 
 if __name__ == '__main__':

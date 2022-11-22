@@ -6,7 +6,7 @@ import effects
 import arrow
 
 deg = 0
-mouse_x, mouse_y = 0, 0
+mouseX, mouseY = 0, 0
 
 # 활 프레임
 LB_TIME_PER_ACTION    = 2.0
@@ -18,21 +18,21 @@ state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
 shortSwordEffects = []
-class shortSword:
+class ShortSword:
     image = None
     
     def __init__(self):
-        if shortSword.image == None:
-            shortSword.image = load_image('resources/images/weapon/MeleeWeapon/ShortSword.png')
+        if ShortSword.image == None:
+            ShortSword.image = load_image('resources/images/weapon/MeleeWeapon/ShortSword.png')
         self.x = 0
         self.y = 0
         self.backrender = True
         self.isAttack = False
     
     def update(self, player):
-        global deg, mouse_x, mouse_y
+        global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
         if player.direction == direction['LEFT']:
             if self.backrender:
                 self.x = player.x - 15
@@ -72,21 +72,21 @@ class shortSword:
             for effect in shortSwordEffects:
                 effect.draw()
                 
-    def appendEffect(self, player):
+    def append_Effect(self, player):
         global deg, shortSwordEffects
-        shortSwordEffects.append(effects.shortSwordSwing(deg, player))
+        shortSwordEffects.append(effects.ShortSwordSwing(deg, player))
         
-    def removeEffect(self, effect):
+    def remove_Effect(self, effect):
         global shortSwordEffects
         shortSwordEffects.remove(effect)
 
 pickaxeRedEffects = []
-class pickaxeRed:
+class PickaxeRed:
     image = None
     
     def __init__(self):
-        if pickaxeRed.image == None:
-            pickaxeRed.image = load_image('resources/images/weapon/MeleeWeapon/PickaxeRed.png')
+        if PickaxeRed.image == None:
+            PickaxeRed.image = load_image('resources/images/weapon/MeleeWeapon/PickaxeRed.png')
         
         self.x = 0
         self.y = 0
@@ -96,7 +96,7 @@ class pickaxeRed:
         
     
     def update(self, player):
-        global deg, mouse_x, mouse_y
+        global deg, mouseX, mouseY
         global pickaxeRedEffects
         
         if self.isAttack:
@@ -119,9 +119,9 @@ class pickaxeRed:
                 self.isAttack = False
         else:
             if player.direction == direction['LEFT']:
-                    deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi
+                    deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi
             elif player.direction == direction['RIGHT']:
-                    deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi + 180
+                    deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 180
         
         if player.direction == direction['LEFT']:
             self.x = player.x - 25
@@ -150,11 +150,11 @@ class pickaxeRed:
             for effect in pickaxeRedEffects:
                 effect.draw()
         
-    def appendEffect(self, player):
+    def append_Effect(self, player):
         global deg, pickaxeRedEffects
         pickaxeRedEffects.append(effects.RedPickaxeSwing(deg, player))
         
-    def removeEffect(self, effect):
+    def remove_Effect(self, effect):
         global pickaxeRedEffects
         pickaxeRedEffects.remove(effect)
 
@@ -171,9 +171,9 @@ class LightBringer:
         self.frame = 0
     
     def update(self, player):
-        global deg, mouse_x, mouse_y
+        global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
         if player.direction == direction['LEFT']:
             self.x = player.x - 15
             self.y = player.y - 10
@@ -187,7 +187,7 @@ class LightBringer:
                 self.frame = (self.frame + LB_FRAMES_PER_ACTION * LB_ACTION_PER_TIME * game_framework.frame_time) % 6
         
         for effect in arrow.LightBringerEffects:
-            if effect.opac <= 0:
+            if effect.f_opacify <= 0:
                 arrow.LightBringerEffects.remove(effect)    
             effect.update()
             
@@ -203,28 +203,29 @@ class LightBringer:
         for effect in arrow.LightBringerEffects:
             effect.draw()
                 
-    def shootArrow(self, dx, dy, player):
+    def shoot_Arrow(self, dx, dy, player):
         global deg
         Arrow = arrow.Arrow(self.x, self.y, dx, dy, int(self.frame), deg, player)
         game_world.add_object(Arrow, 1)
 
 pistolEffects = []
-class pistol:
+class Pistol:
     image = None
     
     def __init__(self):
-        if pistol.image == None:
-            pistol.image = load_image('resources/images/weapon/longDistanceWeapon/Pistol.png')
+        if Pistol.image == None:
+            Pistol.image = load_image('resources/images/weapon/longDistanceWeapon/Pistol.png')
         self.x = 0
         self.y = 0
         self.backrender = False
-        self.isAttack = False
-        self.frame = 0
+        self.isAttack   = False
+        self.frame  = 0
+        self.recoil = 0
     
     def update(self, player):
-        global deg, mouse_x, mouse_y
+        global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouse_y) - player.y), (mouse_x - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
         if player.direction == direction['LEFT']:
             self.x = player.x - 40
             self.y = player.y - 10
@@ -253,23 +254,23 @@ class pistol:
             for effect in pistolEffects:
                 effect.draw()
             
-    def appendEffect(self, player):
+    def append_Effect(self, player):
         global deg, pistolEffects
-        pistolEffects.append(effects.shootEffect(self, deg, player))
+        pistolEffects.append(effects.ShootEffect(self, deg, player))
         
-    def removeEffect(self, effect):
+    def remove_Effect(self, effect):
         global pistolEffects
         pistolEffects.remove(effect)
                 
-    # def shootArrow(self, dx, dy, player):
+    # def shootBullet(self, dx, dy, player):
     #     global deg
-    #     Arrow = arrow.Arrow(self.x, self.y, dx, dy, int(self.frame), deg, player)
-    #     game_world.add_object(Arrow, 1)
+    #     Bullet = bullet.Bullet(self.x, self.y, dx, dy, deg, player)
+    #     game_world.add_object(Bullet, 1)
 
 
 
-def getMouse(x, y):
-    global mouse_x, mouse_y
+def get_Mouse(x, y):
+    global mouseX, mouseY
     
-    mouse_x = x
-    mouse_y = y
+    mouseX = x
+    mouseY = y

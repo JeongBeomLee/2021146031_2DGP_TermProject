@@ -21,25 +21,25 @@ SE_FRAMES_PER_ACTION  = 3
 state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
-class shortSwordSwing:
+class ShortSwordSwing:
     image = None
-    def __init__(effect, weapon_deg, player):
-        if shortSwordSwing.image == None:
-            shortSwordSwing.image = load_image('resources/images/weapon/MeleeWeapon/SwingFX.png')
+    def __init__(effect, weaponDeg, player):
+        if ShortSwordSwing.image == None:
+            ShortSwordSwing.image = load_image('resources/images/weapon/MeleeWeapon/SwingFX.png')
         
         if player.direction == direction['LEFT']:
-            effect.x = player.x - 100 * cos(radians(weapon_deg + 90))
-            effect.y = player.y - 100 * sin(radians(weapon_deg + 90))
+            effect.x = player.x - 100 * cos(radians(weaponDeg + 90))
+            effect.y = player.y - 100 * sin(radians(weaponDeg + 90))
         if player.direction == direction['RIGHT']:
-            effect.x = player.x + 100 * cos(radians(weapon_deg - 90))
-            effect.y = player.y - 100 * sin(radians(weapon_deg + 90))
+            effect.x = player.x + 100 * cos(radians(weaponDeg - 90))
+            effect.y = player.y - 100 * sin(radians(weaponDeg + 90))
             
         if player.direction == direction['LEFT']:
             effect.direction = 0
-            effect.deg = weapon_deg + 90
+            effect.deg = weaponDeg + 90
         if player.direction == direction['RIGHT']:
             effect.direction = 1
-            effect.deg = weapon_deg - 90
+            effect.deg = weaponDeg - 90
 
         effect.frame = 0.0
         effect.isOn = True    
@@ -49,7 +49,7 @@ class shortSwordSwing:
             if effect.frame >= 3.0:
                 effect.frame = 0.0
                 effect.isOn = False
-                weapon.removeEffect(effect)
+                weapon.remove_Effect(effect)
             effect.frame = effect.frame = (effect.frame + SSS_FRAMES_PER_ACTION * SSS_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):
@@ -62,7 +62,7 @@ class shortSwordSwing:
 class RedPickaxeSwing:
     image = None
     rectImage = None
-    def __init__(effect, weapon_deg, player):
+    def __init__(effect, weaponDeg, player):
         global direction
         if RedPickaxeSwing.image == None:
             RedPickaxeSwing.image = load_image('resources/images/weapon/MeleeWeapon/RedPickaxeSwing.png')
@@ -70,18 +70,18 @@ class RedPickaxeSwing:
             RedPickaxeSwing.rectImage = load_image('resources/images/weapon/MeleeWeapon/RedPickaxeSwingRect.png')
             
         if player.direction == direction['LEFT']:
-            effect.x = player.x + 165 * cos(radians(weapon_deg))
-            effect.y = player.y + 165 * sin(radians(weapon_deg))
+            effect.x = player.x + 165 * cos(radians(weaponDeg))
+            effect.y = player.y + 165 * sin(radians(weaponDeg))
         if player.direction == direction['RIGHT']:
-            effect.x = player.x - 165 * cos(radians(weapon_deg))
-            effect.y = player.y - 165 * sin(radians(weapon_deg))
+            effect.x = player.x - 165 * cos(radians(weaponDeg))
+            effect.y = player.y - 165 * sin(radians(weaponDeg))
         
         if player.direction == direction['LEFT']:
             effect.direction = 0
         if player.direction == direction['RIGHT']:
             effect.direction = 1
             
-        effect.deg = weapon_deg
+        effect.deg = weaponDeg
         effect.frame = 0
         effect.isOn = True
         
@@ -91,7 +91,7 @@ class RedPickaxeSwing:
             if effect.frame >= 13.0:
                 effect.frame = 0
                 effect.isOn = False
-                weapon.removeEffect(effect)
+                weapon.remove_Effect(effect)
             effect.frame = (effect.frame + RPS_FRAMES_PER_ACTION * RPS_ACTION_PER_TIME * game_framework.frame_time) % 14
     
     def draw(effect):
@@ -103,31 +103,31 @@ class RedPickaxeSwing:
                 effect.image.clip_composite_draw(int(effect.frame) * 22, 0, 22, 56, radians(effect.deg), 'h', effect.x, effect.y, 110, 280)
                 # self.rectImage.clip_composite_draw(0, 0, 110, 280, radians(self.deg), 'h', self.x, self.y, 110, 280)
     
-class lightBringerEffect:
+class LightBringerEffect:
     image = None
         
     def __init__(effect, x, y) :
-        if lightBringerEffect.image == None:
-            lightBringerEffect.image = load_image("resources/images/weapon/longDistanceWeapon/light.png")
+        if LightBringerEffect.image == None:
+            LightBringerEffect.image = load_image("resources/images/weapon/longDistanceWeapon/light.png")
         
         effect.x = x
         effect.y = y
-        effect.opac = 1.0
+        effect.f_opacify = 1.0
         
     def update(effect):
-        effect.opac -= 0.05
+        effect.f_opacify -= 0.05
        
             
     def draw(effect):
-        effect.image.opacify(effect.opac)
+        effect.image.opacify(effect.f_opacify)
         effect.image.clip_composite_draw(0, 0, 151, 153, 0, 'n', effect.x, effect.y, 453, 459)
 
-class shootEffect:
+class ShootEffect:
     image = None
     
     def __init__(effect, weapon, weapon_deg, player):
-        if shootEffect.image == None:
-            shootEffect.image = load_image("resources/images/weapon/longDistanceWeapon/effect/ShootEffect.png")
+        if ShootEffect.image == None:
+            ShootEffect.image = load_image("resources/images/weapon/longDistanceWeapon/effect/ShootEffect.png")
         
         if player.direction == direction['LEFT']:
             effect.x = weapon.x - 50 * cos(radians(weapon_deg + 90))
@@ -152,7 +152,7 @@ class shootEffect:
             if effect.frame >= 3.0:
                 effect.frame = 0.0
                 effect.isOn = False
-                weapon.removeEffect(effect)
+                weapon.remove_Effect(effect)
             effect.frame = effect.frame = (effect.frame + SE_FRAMES_PER_ACTION * SE_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):

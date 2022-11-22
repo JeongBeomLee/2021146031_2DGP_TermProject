@@ -14,11 +14,11 @@ class Arrow:
     def __init__(arrow, x, y, dx, dy, speed, deg, player):
         if Arrow.image == None:
             Arrow.image = load_image("resources/images/weapon/longDistanceWeapon/ArrowImage.png")
-        arrow.x         = x
-        arrow.y         = y
-        arrow.dx       = dx
-        arrow.dy       = dy
-        arrow.speed = speed
+        arrow.x       = x
+        arrow.y       = y
+        arrow.dx      = dx
+        arrow.dy      = dy
+        arrow.speed   = speed
         arrow.deg     = deg - 10
         arrow.isOn    = True
         
@@ -30,7 +30,7 @@ class Arrow:
     def update(arrow):
         arrow.x += arrow.dx * (arrow.speed + 1)
         arrow.y += arrow.dy * (arrow.speed + 1)
-        effect = effects.lightBringerEffect(arrow.x, arrow.y)
+        effect = effects.LightBringerEffect(arrow.x, arrow.y)
         LightBringerEffects.append(effect)
         
         if arrow.x < 0 or arrow.x > 1600:
