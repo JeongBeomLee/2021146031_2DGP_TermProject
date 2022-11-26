@@ -5,21 +5,17 @@ import game_world
 
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
-
-LightBringerEffects = []
-
 class Bullet:
     image = None
     
-    def __init__(bullet, x, y, dx, dy, speed, deg, player):
+    def __init__(bullet, x, y, dx, dy, deg, player):
         if Bullet.image == None:
-            Bullet.image = load_image("resources/images/weapon/longDistanceWeapon/ArrowImage.png")
+            Bullet.image = load_image("resources/images/weapon/longDistanceWeapon/Bullet.png")
         bullet.x       = x
         bullet.y       = y
         bullet.dx      = dx
         bullet.dy      = dy
-        bullet.speed   = speed
-        bullet.deg     = deg - 10
+        bullet.deg     = deg - 90
         bullet.isOn    = True
         
         if player.direction == direction['LEFT']:
@@ -28,10 +24,8 @@ class Bullet:
             bullet.direction = direction['RIGHT']
         
     def update(bullet):
-        bullet.x += bullet.dx * (bullet.speed + 1)
-        bullet.y += bullet.dy * (bullet.speed + 1)
-        effect = effects.LightBringerEffect(bullet.x, bullet.y)
-        LightBringerEffects.append(effect)
+        bullet.x += bullet.dx
+        bullet.y += bullet.dy
         
         if bullet.x < 0 or bullet.x > 1600:
             game_world.remove_object(bullet)
@@ -39,6 +33,6 @@ class Bullet:
             
     def draw(bullet):
         if bullet.direction == direction['LEFT']:
-            bullet.image.clip_composite_draw(0, 0, 5, 26, radians(bullet.deg), 'n', bullet.x, bullet.y, 50, 260)
+            bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'n', bullet.x, bullet.y, 45, 25)
         elif bullet.direction == direction['RIGHT']:
-            bullet.image.clip_composite_draw(0, 0, 5, 26, radians(bullet.deg), 'h', bullet.x, bullet.y, 50, 260)
+            bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'h', bullet.x, bullet.y, 45, 25)

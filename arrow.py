@@ -5,9 +5,6 @@ import game_world
 
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
-
-LightBringerEffects = []
-
 class Arrow:
     image = None
     
@@ -31,7 +28,7 @@ class Arrow:
         arrow.x += arrow.dx * (arrow.speed + 1)
         arrow.y += arrow.dy * (arrow.speed + 1)
         effect = effects.LightBringerEffect(arrow.x, arrow.y)
-        LightBringerEffects.append(effect)
+        game_world.add_object(effect, 0)
         
         if arrow.x < 0 or arrow.x > 1600:
             game_world.remove_object(arrow)

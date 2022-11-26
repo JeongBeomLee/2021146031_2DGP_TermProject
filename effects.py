@@ -1,6 +1,7 @@
 from pico2d import *
 from math import *
 import game_framework
+import game_world
 
 # 한손검 이펙트 프레임
 SSS_TIME_PER_ACTION    = 0.3
@@ -44,12 +45,12 @@ class ShortSwordSwing:
         effect.frame = 0.0
         effect.isOn = True    
             
-    def update(effect, weapon):
+    def update(effect):
         if effect.isOn:
             if effect.frame >= 3.0:
                 effect.frame = 0.0
                 effect.isOn = False
-                weapon.remove_Effect(effect)
+                game_world.remove_object(effect)
             effect.frame = effect.frame = (effect.frame + SSS_FRAMES_PER_ACTION * SSS_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):
@@ -86,12 +87,12 @@ class RedPickaxeSwing:
         effect.isOn = True
         
     
-    def update(effect, weapon):
+    def update(effect):
         if effect.isOn:
             if effect.frame >= 13.0:
                 effect.frame = 0
                 effect.isOn = False
-                weapon.remove_Effect(effect)
+                game_world.remove_object(effect)
             effect.frame = (effect.frame + RPS_FRAMES_PER_ACTION * RPS_ACTION_PER_TIME * game_framework.frame_time) % 14
     
     def draw(effect):
@@ -116,7 +117,8 @@ class LightBringerEffect:
         
     def update(effect):
         effect.f_opacify -= 0.05
-       
+        if effect.f_opacify <= 0:
+                game_world.remove_object(effect)
             
     def draw(effect):
         effect.image.opacify(effect.f_opacify)
@@ -131,7 +133,7 @@ class ShootEffect:
         
         if player.direction == direction['LEFT']:
             effect.x = weapon.x - 50 * cos(radians(weapon_deg + 90))
-            effect.y = weapon.y - 50 * sin(radians(weapon_deg + 90))
+            effect.y = weapon.y - 50 * sin(radians(weapon_deg + 80))
         if player.direction == direction['RIGHT']:
             effect.x = weapon.x + 50 * cos(radians(weapon_deg - 90))
             effect.y = weapon.y - 50 * sin(radians(weapon_deg + 90))
@@ -147,12 +149,12 @@ class ShootEffect:
         effect.frame = 0.0
         effect.isOn = True    
             
-    def update(effect, weapon):
+    def update(effect):
         if effect.isOn:
             if effect.frame >= 3.0:
                 effect.frame = 0.0
                 effect.isOn = False
-                weapon.remove_Effect(effect)
+                game_world.remove_object(effect)
             effect.frame = effect.frame = (effect.frame + SE_FRAMES_PER_ACTION * SE_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):

@@ -28,7 +28,7 @@ direction  = {'RIGHT' : 1, 'LEFT' : 0}
 # 무기
 weaponSort = {'sword' : 0, 'sickle' : 1, 'pistol' : 2, 'lightbringer' : 3}
 
-mouse_x, mouse_y = 0, 0
+mouseX, mouseY = 0, 0
 deg = 0
         
 class Player:
@@ -58,10 +58,10 @@ class Player:
         #### 위치 관련 변수 ####
         player.x          = 800
         player.y          = 200
-        player.after_x    = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.after_y    = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.f_opacify  = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        player.after_isOn = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterX    = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterY    = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.opacifyF  = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        player.afterIsOn = [0, 0, 0, 0, 0, 0, 0, 0]
         player.frame      = 0
         player.speedLR    = 0
         player.jumpHeight = 0
@@ -96,10 +96,10 @@ class Player:
         # print('player.state : %d' %player.state)
         # print('player.direction : %d' %player.direction)
         
-        global mouse_x, mouse_y
-        if player.x > mouse_x:
+        global mouseX, mouseY
+        if player.x > mouseX:
                 player.direction = direction['LEFT']
-        elif player.x <= mouse_x:
+        elif player.x <= mouseX:
                 player.direction = direction['RIGHT']
         
         if player.state == state['IDLE']: # idle상태 일 때
@@ -118,9 +118,9 @@ class Player:
             player.y += player.dy
             
             #### 잔상 업데이트 ####
-            player.after_x[player.dashCount] = player.x
-            player.after_y[player.dashCount] = player.y
-            player.after_isOn[player.dashCount] = 1
+            player.afterX[player.dashCount] = player.x
+            player.afterY[player.dashCount] = player.y
+            player.afterIsOn[player.dashCount] = 1
             
             player.dashCount += 1
             
@@ -142,11 +142,11 @@ class Player:
         
         #### 잔상 업데이트 ####
         for i in range(player.dashCount, 8):
-            player.f_opacify[i] -= 0.1
-            if player.f_opacify[i] <= 0.0:
-                player.after_isOn[i] = 0
-                player.after_x[i] = 0
-                player.after_y[i] = 0
+            player.opacifyF[i] -= 0.1
+            if player.opacifyF[i] <= 0.0:
+                player.afterIsOn[i] = 0
+                player.afterX[i] = 0
+                player.afterY[i] = 0
                 
         
         #### 무기 업데이트 ####
@@ -158,17 +158,17 @@ class Player:
         #### 잔상 이미지 ####
         if player.direction == direction['LEFT']:
                 for i in range(player.dashCount, 8):
-                    if player.after_isOn[i]:
+                    if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
-                            player.after_x[i], player.after_y[i], 85, 100)
-                        player.afterImage[i].opacify(player.f_opacify[i])
+                            player.afterX[i], player.afterY[i], 85, 100)
+                        player.afterImage[i].opacify(player.opacifyF[i])
                     
         if player.direction == direction['RIGHT']:
                 for i in range(player.dashCount, 8):
-                    if player.after_isOn[i]:
+                    if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
-                            player.after_x[i], player.after_y[i], 85, 100)
-                        player.afterImage[i].opacify(player.f_opacify[i])
+                            player.afterX[i], player.afterY[i], 85, 100)
+                        player.afterImage[i].opacify(player.opacifyF[i])
                         
         #### 한손검은 휘두를 때 마다 앞에 그려줄지 뒤에 그려줄지 정해줌 ####
         if (player.weaponSort == weaponSort['sword'] and player.weapon.backrender == True) or player.weaponSort == weaponSort['pistol']:
@@ -215,7 +215,7 @@ class Player:
         
                 
     def handle_event(player, event):
-        global mouse_x, mouse_y
+        global mouseX, mouseY
         if event.type == SDL_KEYDOWN:
             #### 무기 바꿔주기 ####
             if event.key == SDLK_1:
@@ -282,11 +282,12 @@ class Player:
                     player.frame = 0
             
         elif event.type == SDL_MOUSEMOTION:
-            mouse_x = event.x
-            mouse_y = event.y
+            mouseX = event.x
+            mouseY = event.y
             weapons.get_Mouse(event.x, event.y)
             
         #### 캐릭터 공격 ####
+        #### 마우스 왼쪽 눌림 ####
         elif event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
                 if player.weaponSort == weaponSort['sword']: 
@@ -301,23 +302,26 @@ class Player:
                 elif player.weaponSort == weaponSort['pistol']:
                     player.weapon.isAttack = True
                     player.weapon.append_Effect(player)
+                    dx, dy = ((mouseX - player.weapon.x) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y) ** 2) * 45,
+                           (900 - mouseY - player.weapon.y) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y)**2) * 45)
+                    player.weapon.shoot_Bullet(dx, dy, player)
                     
             #### 캐릭터 대쉬 ####
             if event.button == SDL_BUTTON_RIGHT:
                 if player.state != state['DASH']:
                     player.state = state['DASH']
                     player.dashCount = 0
-                    player.dx, player.dy = ((mouse_x - player.x) / math.sqrt((mouse_x - player.x)**2 + (900 - mouse_y - player.y) ** 2) * 45,
-                           (900 - mouse_y - player.y) / math.sqrt((mouse_x - player.x)**2 + (900 - mouse_y - player.y)**2) * 45)
+                    player.dx, player.dy = ((mouseX - player.x) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y) ** 2) * 45,
+                           (900 - mouseY - player.y) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y)**2) * 45)
                     for i in range(8): # 잔상 초기화
-                        player.f_opacify[i] = 1.0
+                        player.opacifyF[i] = 1.0
                         
-        #### 활, 총 마우스 버튼 UP 이벤트 ####
+        #### 마우스 왼쪽 버튼 올림 ####
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 if player.weaponSort == weaponSort['lightbringer']: # 활
-                    dx, dy = ((mouse_x - player.weapon.x) / math.sqrt((mouse_x - player.weapon.x)**2 + (900 - mouse_y - player.weapon.y) ** 2) * 45,
-                           (900 - mouse_y - player.weapon.y) / math.sqrt((mouse_x - player.weapon.x)**2 + (900 - mouse_y - player.weapon.y)**2) * 45)
+                    dx, dy = ((mouseX - player.weapon.x) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y) ** 2) * 45,
+                           (900 - mouseY - player.weapon.y) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y)**2) * 45)
                     player.weapon.shoot_Arrow(dx, dy, player)
                     player.weapon.isAttack = False
                     player.weapon.frame = 0
