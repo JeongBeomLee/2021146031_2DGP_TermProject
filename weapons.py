@@ -5,6 +5,7 @@ import game_framework, game_world
 import effects
 import arrow
 import bullet
+import test_state
 
 deg = 0
 mouseX, mouseY = 0, 0
@@ -18,7 +19,6 @@ LB_FRAMES_PER_ACTION  = 6
 state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
-shortSwordEffects = []
 class ShortSword:
     image = None
     
@@ -68,7 +68,10 @@ class ShortSword:
     def append_Effect(self, player):
         global deg
         shortSwordEffect = effects.ShortSwordSwing(deg, player)
-        game_world.add_object(shortSwordEffect, 1)
+        game_world.add_object(shortSwordEffect, 2)
+        # for monster in monsters:
+        # game_world.add_collision_pairs(shortSwordEffect, test_state.monster, 'shortSwordEffect:monster')
+        game_world.add_collision_pairs(shortSwordEffect, test_state.monster, 'shortSwordEffect:monster')
 
 class PickaxeRed:
     image = None
@@ -85,7 +88,6 @@ class PickaxeRed:
     
     def update(self, player):
         global deg, mouseX, mouseY
-        global pickaxeRedEffects
         
         if self.isAttack:
             if self.attackCount < 4:
@@ -120,7 +122,7 @@ class PickaxeRed:
             self.y = player.y - 20
     
     def draw(self, player):
-        global deg, pickaxeRedEffects
+        global deg
         
         if player.direction == direction['LEFT']:
             self.image.clip_composite_draw(0, 0, 70, 66, radians(deg), 'h', self.x, self.y, 350, 330)
@@ -129,9 +131,10 @@ class PickaxeRed:
             self.image.clip_composite_draw(0, 0, 70, 66, radians(deg), 'n', self.x, self.y, 350, 330)
         
     def append_Effect(self, player):
-        global deg, pickaxeRedEffects
+        global deg
         pickaxeRedEffect = effects.RedPickaxeSwing(deg, player)
-        game_world.add_object(pickaxeRedEffect, 1)
+        game_world.add_object(pickaxeRedEffect, 2)
+        game_world.add_collision_pairs(pickaxeRedEffect, test_state.monster, 'pickaxeRedEffect:monster')
         
 
 class LightBringer:
@@ -174,25 +177,28 @@ class LightBringer:
     def shoot_Arrow(self, dx, dy, player):
         global deg
         Arrow = arrow.Arrow(self.x, self.y, dx, dy, int(self.frame), deg, player)
-        game_world.add_object(Arrow, 1)
+        game_world.add_object(Arrow, 4)
+        game_world.add_collision_pairs(Arrow, test_state.monster, 'Arrow:monster')
 
 class Pistol:
     image = None
+    firstShoot = False
     
     def __init__(self):
         if Pistol.image == None:
             Pistol.image = load_image('resources/images/weapon/longDistanceWeapon/Pistol.png')
         self.x = 0
         self.y = 0
-        self.backrender = False
-        self.isAttack   = False
-        self.frame  = 0
-        self.recoil = 0
+        self.backrender  = False
+        self.isAttack    = False
+        self.recoilDeg   = 0
+        self.bulletCount = 10
+        self.isReload    = False
     
     def update(self, player):
         global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100 
         if player.direction == direction['LEFT']:
             self.x = player.x - 40
             self.y = player.y - 10
@@ -202,20 +208,29 @@ class Pistol:
             self.y = player.y - 10
         
         if self.isAttack:
-            pass
+            self.recoilDeg = 30
+        
+        if self.recoilDeg != 0:
+            self.recoilDeg -= 5
+        
+        if self.bulletCount == 0:
+            if self.isReload == False:
+                self.isReload = True
+                reloadEffect = effects.ReloadEffect(player)
+                game_world.add_object(reloadEffect, 0)
             
     def draw(self, player):
         global deg
         
         if player.direction == direction['LEFT']:
-            self.image.clip_composite_draw(0, 0, 11, 7, radians(deg + 80), 'h', self.x, self.y, 55, 35)
+            self.image.clip_composite_draw(0, 0, 11, 7, radians(deg + 80 - self.recoilDeg), 'h', self.x, self.y, 55, 35)
                 
         elif player.direction == direction['RIGHT']:
-            self.image.clip_composite_draw(0, 0, 11, 7, radians(deg - 100), 'n', self.x, self.y, 55, 35)
+            self.image.clip_composite_draw(0, 0, 11, 7, radians(deg - 100 + self.recoilDeg), 'n', self.x, self.y, 55, 35)
             
             
     def append_Effect(self, player):
-        global deg, pistolEffects
+        global deg
         pistolEffect = effects.ShootEffect(self, deg, player)
         game_world.add_object(pistolEffect, 0)
         
@@ -223,8 +238,10 @@ class Pistol:
     def shoot_Bullet(self, dx, dy, player):
         global deg
         Bullet = bullet.Bullet(self.x, self.y, dx, dy, deg, player)
-        game_world.add_object(Bullet, 1)
-
+        game_world.add_object(Bullet, 5)
+        game_world.add_collision_pairs(Bullet, test_state.monster, 'Bullet:monster')
+        self.bulletCount -= 1
+            
 
 
 def get_Mouse(x, y):

@@ -58,10 +58,10 @@ class Player:
         #### 위치 관련 변수 ####
         player.x          = 800
         player.y          = 200
-        player.afterX    = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.afterY    = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.opacifyF  = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        player.afterIsOn = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterX     = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterY     = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.opacifyF   = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        player.afterIsOn  = [0, 0, 0, 0, 0, 0, 0, 0]
         player.frame      = 0
         player.speedLR    = 0
         player.jumpHeight = 0
@@ -74,15 +74,31 @@ class Player:
         player.state      = state['IDLE']
         player.direction  = direction['RIGHT']
         
-        #### 무기 관련 오브젝트 ####
-        # player.weaponSort = weaponSort['sickle']
-        # player.weapon     = Weapons_Short.pickaxeRed()
-        
-        player.hand             = player_hand.Hand(player)
+        player.hand       = player_hand.Hand(player)
         player.weaponSort = weaponSort['sword']
-        player.weapon        = weapons.ShortSword()
+        player.weapon     = weapons.ShortSword()
 
-
+    #### 바운딩 박스 받기 ####
+    def get_bb(player):
+        return player.x - 32.5, player.y - 50, player.x + 32.5, player.y + 50
+    
+    #### 객체별 충돌처리 ####
+    def handle_collision(player, other, group):
+        #### 바닥 충돌처리 ####
+        if group == 'player:ground':
+            player.y = other.y + other.groundImage.h * 5 + 50 + 1   ### 땅의 바운딩박스 top + 플레이어 피봇 기준 발위치 + 1 pixel
+            if player.state == state['JUMP']:
+                player.state = state['IDLE']
+            player.jumpHeight = 0
+            player.jumpCount = 0
+            
+        if group == 'player:stepstone' and player.jumpHeight < 0:
+            player.y = other.y + other.stepstoneImage.h * 5 / 2 + 50 + 1
+            if player.state == state['JUMP']:
+                player.state = state['IDLE']
+            player.jumpHeight = 0
+            player.jumpCount = 0
+    
     def update(player):
         # print('player.x : %d' %player.x)
         # print('player.y : %d' %player.y)
@@ -110,8 +126,7 @@ class Player:
         if player.state == state['RUN']:
             player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 8
             
-        if player.state == state['JUMP']:
-           player.jumpHeight -= 1
+        player.jumpHeight -= 1 # h 감소
                 
         if player.state == state['DASH']:
             player.x += player.dx
@@ -133,12 +148,7 @@ class Player:
         if player.state != state['DASH']:
             player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
             player.y += 0.98 * 1 * (player.jumpHeight)
-        
-        if player.y < 200:
-                player.y = 200
-                player.state = state['IDLE']
-                player.jumpHeight = 0
-                player.jumpCount = 0
+                
         
         #### 잔상 업데이트 ####
         for i in range(player.dashCount, 8):
@@ -211,6 +221,8 @@ class Player:
             player.weapon.draw(player)
         elif player.weaponSort == weaponSort['sickle'] or player.weaponSort == weaponSort['lightbringer']:
             player.weapon.draw(player)
+            
+        draw_rectangle(*player.get_bb())
             
         
                 
@@ -325,9 +337,6 @@ class Player:
                     player.weapon.shoot_Arrow(dx, dy, player)
                     player.weapon.isAttack = False
                     player.weapon.frame = 0
+                if player.weaponSort == weaponSort['pistol']:
+                    player.weapon.isAttack = False
             
-            
-    # def fire_ball(self):
-    #     print('FIRE BALL')
-    #     ball = Ball(self.x, self.y, self.face_dir*2)
-    #     game_world.add_object(ball, 1)

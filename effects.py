@@ -1,5 +1,6 @@
 from pico2d import *
 from math import *
+import test_state
 import game_framework
 import game_world
 
@@ -14,9 +15,16 @@ RPS_ACTION_PER_TIME    = 1.0 / RPS_TIME_PER_ACTION
 RPS_FRAMES_PER_ACTION  = 5
 
 # 자동권총 이펙트 프레임
-SE_TIME_PER_ACTION    = 0.09
+SE_TIME_PER_ACTION    = 0.1
 SE_ACTION_PER_TIME    = 1.0 / SE_TIME_PER_ACTION
 SE_FRAMES_PER_ACTION  = 3
+
+# 재장전 바 속도
+PIXEL_PER_METER = (10.0 / 0.3)
+RB_SPEED_KMPH   = 11.5
+RB_SPEED_MPM    = (RB_SPEED_KMPH * 1000.0 / 60.0)
+RB_SPEED_MPS    = (RB_SPEED_MPM / 60.0)
+RB_SPEED_PPS    = (RB_SPEED_MPS * PIXEL_PER_METER)
 
 # 캐릭터 상태, 방향
 state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
@@ -44,6 +52,14 @@ class ShortSwordSwing:
 
         effect.frame = 0.0
         effect.isOn = True    
+    
+    #### 바운딩 박스 받기 ####
+    def get_bb(effect):
+        return effect.x - 70, effect.y - 100, effect.x + 70, effect.y + 100
+    
+    #### 객체별 충돌처리 ####
+    def handle_collision(effect, other, group):
+        pass
             
     def update(effect):
         if effect.isOn:
@@ -51,6 +67,7 @@ class ShortSwordSwing:
                 effect.frame = 0.0
                 effect.isOn = False
                 game_world.remove_object(effect)
+                game_world.remove_collision_pairs(effect, test_state.monster, 'shortSwordEffect:monster')
             effect.frame = effect.frame = (effect.frame + SSS_FRAMES_PER_ACTION * SSS_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):
@@ -59,6 +76,7 @@ class ShortSwordSwing:
                 effect.image.clip_composite_draw(int(effect.frame) * 28, 0, 28, 40, radians(effect.deg), 'h', effect.x, effect.y, 140, 200)
             elif effect.direction == 1:
                 effect.image.clip_composite_draw(int(effect.frame) * 28, 0, 28, 40, radians(effect.deg), 'n', effect.x, effect.y, 140, 200)
+        draw_rectangle(*effect.get_bb())
 
 class RedPickaxeSwing:
     image = None
@@ -86,6 +104,13 @@ class RedPickaxeSwing:
         effect.frame = 0
         effect.isOn = True
         
+    #### 바운딩 박스 받기 ####
+    def get_bb(effect):
+        return effect.x - 55, effect.y - 140, effect.x + 55, effect.y + 140
+    
+    #### 객체별 충돌처리 ####
+    def handle_collision(effect, other, group):
+        pass
     
     def update(effect):
         if effect.isOn:
@@ -93,16 +118,17 @@ class RedPickaxeSwing:
                 effect.frame = 0
                 effect.isOn = False
                 game_world.remove_object(effect)
+                game_world.remove_collision_pairs(effect, test_state.monster, 'pickaxeRedEffect:monster')
+                
             effect.frame = (effect.frame + RPS_FRAMES_PER_ACTION * RPS_ACTION_PER_TIME * game_framework.frame_time) % 14
     
     def draw(effect):
         if effect.isOn:
             if effect.direction == 0:
                 effect.image.clip_composite_draw(int(effect.frame) * 22, 0, 22, 56, radians(effect.deg), 'n', effect.x, effect.y, 110, 280)
-                # self.rectImage.clip_composite_draw(0, 0, 110, 280, radians(self.deg), 'n', self.x, self.y, 110, 280)
             elif effect.direction == 1:
                 effect.image.clip_composite_draw(int(effect.frame) * 22, 0, 22, 56, radians(effect.deg), 'h', effect.x, effect.y, 110, 280)
-                # self.rectImage.clip_composite_draw(0, 0, 110, 280, radians(self.deg), 'h', self.x, self.y, 110, 280)
+        draw_rectangle(*effect.get_bb())
     
 class LightBringerEffect:
     image = None
@@ -163,3 +189,41 @@ class ShootEffect:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 15, radians(effect.deg), 'h', effect.x, effect.y, 70, 75)
             elif effect.direction == 1:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 15, radians(effect.deg), 'n', effect.x, effect.y, 70, 75)
+                
+class ReloadEffect:
+    reloadBarImage  = None
+    reloadBaseImage = None
+    reloadImage     = None
+    
+    def __init__(effect, player):
+        if ReloadEffect.reloadBarImage == None:
+            ReloadEffect.reloadBarImage = load_image("resources/images/weapon/longDistanceWeapon/effect/ReloadBar.png")
+        if ReloadEffect.reloadBaseImage == None:
+            ReloadEffect.reloadBaseImage = load_image("resources/images/weapon/longDistanceWeapon/effect/ReloadBase.png")
+        if ReloadEffect.reloadImage == None:
+            ReloadEffect.reloadImage = load_image("resources/images/weapon/longDistanceWeapon/effect/Reload.png")    
+
+        effect.reloadBaseX = player.x
+        effect.reloadBaseY = player.y + 60
+        
+        effect.reloadBarX  = player.x - 35
+        effect.reloadBarY  = player.y + 60
+        effect.reloadBarDX = 0.0
+        
+        effect.reloadX     = player.x
+        effect.reloadY     = player.y + 60
+        
+        effect.frame = 0.0
+        effect.isOn = True    
+            
+    def update(effect):
+        if effect.isOn:
+            effect.reloadBarX += RB_SPEED_PPS * game_framework.frame_time
+            effect.reloadBarDX += RB_SPEED_PPS * game_framework.frame_time
+            if effect.reloadBarDX >= 90:
+                effect.isOn = False;
+    
+    def draw(effect):
+        if effect.isOn:
+            effect.reloadBaseImage.clip_draw(0, 0, 23, 1, effect.reloadBaseX, effect.reloadBaseY, 115, 5)
+            effect.reloadBarImage.clip_draw(0, 0, 2, 3, effect.reloadBarX, effect.reloadBarY, 10, 15)
