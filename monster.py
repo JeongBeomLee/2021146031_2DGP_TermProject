@@ -6,6 +6,8 @@ import math
 import random
 
 import test_state
+import ui
+import effects
 
 ghost_state = {'attack' : 0}
 ghost_direction = {'left' : 0, 'right' : 1}
@@ -40,10 +42,17 @@ class Big_Skel_Sword:
             
         monster.x           = 800
         monster.y           = 200
+        monster.w           = Big_Skel_Sword.idleImage.w * 5
+        monster.h           = Big_Skel_Sword.idleImage.h * 5
         monster.frame       = 0
         monster.isAttack    = False
         monster.isAttacked  = False
         monster.unheatCount = 0
+        
+        monster.hpMax = 50
+        monster.hp = 50
+        monster.power = 10
+        monster.lifeBar = ui.EnemyLifeBar(monster)
         
     def get_bb(monster):
         return monster.x - 16.5 * 5, monster.y - 75, monster.x + 16.5 * 5, monster.y + 75
@@ -60,24 +69,36 @@ class Big_Skel_Sword:
         if group == 'Bullet:monster' or group == 'Arrow:monster':
             if monster.unheatCount == 0:
                 monster.isAttacked = True
+                monster.hp -= other.power
         elif group == 'pickaxeRedEffect:monster' and test_state.player.weapon.isAttack:
             if monster.unheatCount == 0:
                 monster.isAttacked = True
+                monster.hp -= other.power
         elif group == 'shortSwordEffect:monster' and test_state.player.weapon.isAttack:
             if monster.unheatCount == 0:
                 monster.isAttacked = True
-            
+                monster.hp -= other.power
     
     def update(monster):
+        if monster.hp <= 0:
+            game_world.remove_collision_object(monster)
+            game_world.remove_object(monster)
+            destroyEffect = effects.DestroyEffect(monster.x, monster.y)
+            game_world.add_object(destroyEffect, 0)
+            
+            #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 다른데로 보냄
+            monster.x = - 500
+            monster.y = - 500
+            
+        
         if monster.isAttacked:
-            monster.opacifyF = 0.5
             monster.unheatCount += game_framework.frame_time
             if monster.unheatCount >= 0.1:
-                monster.opacifyF    = 1.0
                 monster.unheatCount = 0
                 monster.isAttacked  = False
         
         monster.frame = (monster.frame + BSS_IDLE_FRAMES_PER_ACTION * BSS_IDLE_ACTION_PER_TIME * game_framework.frame_time) % 5
+        monster.lifeBar.update(monster)
         # monster.y -= 50
 
     def draw(monster):
@@ -85,4 +106,5 @@ class Big_Skel_Sword:
             monster.idleShotImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.x, monster.y, 33 * 5, 30 * 5)
         else:
             monster.idleImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.x, monster.y, 33 * 5, 30 * 5)
+        monster.lifeBar.draw(monster)
         draw_rectangle(*monster.get_bb())

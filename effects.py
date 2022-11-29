@@ -36,6 +36,11 @@ BE_TIME_PER_ACTION    = 0.5
 BE_ACTION_PER_TIME    = 1.0 / BE_TIME_PER_ACTION
 BE_FRAMES_PER_ACTION  = 6
 
+# 몬스터 사망 이펙트 프레임
+DE_TIME_PER_ACTION    = 0.3
+DE_ACTION_PER_TIME    = 1.0 / DE_TIME_PER_ACTION
+DE_FRAMES_PER_ACTION  = 11
+
 # 캐릭터 상태, 방향
 state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
@@ -62,6 +67,7 @@ class ShortSwordSwing:
 
         effect.frame = 0.0
         effect.isOn = True    
+        effect.power = player.power + 10
     
     #### 바운딩 박스 받기 ####
     def get_bb(effect):
@@ -113,6 +119,7 @@ class RedPickaxeSwing:
         effect.deg = weaponDeg
         effect.frame = 0
         effect.isOn = True
+        effect.power = player.power + 10
         
     #### 바운딩 박스 받기 ####
     def get_bb(effect):
@@ -293,3 +300,27 @@ class BoomEffect:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 13, radians(effect.deg - 90), 'h', effect.x, effect.y, 70, 65)
             elif effect.direction == 1:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 13, radians(effect.deg - 90), 'n', effect.x, effect.y, 70, 65)
+                
+class DestroyEffect:
+    image = None
+    
+    def __init__(effect, x, y):
+        if DestroyEffect.image == None:
+            DestroyEffect.image = load_image("resources/images/Enemy/destroy.png")
+        
+        effect.x = x
+        effect.y = y
+        effect.frame = 0.0
+        effect.isOn = True    
+            
+    def update(effect):
+        if effect.isOn:
+            if effect.frame >= 10.0:
+                effect.frame = 0.0
+                effect.isOn = False
+                game_world.remove_object(effect)
+            effect.frame = effect.frame = (effect.frame + DE_FRAMES_PER_ACTION * DE_ACTION_PER_TIME * game_framework.frame_time) % 11
+    
+    def draw(effect):
+        if effect.isOn:
+            effect.image.clip_composite_draw(int(effect.frame) * 40, 0, 40, 40, 0, 'n', effect.x, effect.y, 200, 200)

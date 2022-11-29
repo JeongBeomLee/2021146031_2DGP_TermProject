@@ -25,7 +25,7 @@ def remove_object(o):
                 return
         except:
             pass
-    raise ValueError('Trying destroy non existing object')
+    # raise ValueError('Trying destroy non existing object')
 
 
 def all_objects():
@@ -71,15 +71,15 @@ def remove_collision_pairs(a, b, group):
         if type(b) is list:
             collision_group[group][1] -= b
         else:
-            collision_group[group][1].remove(b)
+            if b in collision_group[group][1]:
+                collision_group[group][1].remove(b)
             
     if b:
         if type(a) is list:
             collision_group[group][0] -= a
         else:
-            collision_group[group][0].remove(a)
-            
-    del group
+            if a in collision_group[group][0]:
+                collision_group[group][0].remove(a)
 
 def clear():
     for o in all_objects():

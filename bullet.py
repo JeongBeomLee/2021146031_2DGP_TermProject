@@ -17,12 +17,14 @@ class Bullet:
         bullet.dx      = dx
         bullet.dy      = dy
         bullet.deg     = deg - 90
+        bullet.power   = player.power + 10
         bullet.isOn    = True
         
         if player.direction == direction['LEFT']:
             bullet.direction = direction['LEFT']
         if player.direction == direction['RIGHT']:
             bullet.direction = direction['RIGHT']
+            
     #### 바운딩 박스 받기 ####
     def get_bb(bullet):
         return bullet.x - 22.5, bullet.y - 12.5, bullet.x + 22.5, bullet.y + 12.5

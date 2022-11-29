@@ -68,10 +68,15 @@ class Player:
         player.jumpCount     = 0
         player.dx            = 0
         player.dy            = 0
-        player.dashCount     = 0
+        player.dashTimer     = 0
+        player.dashCount     = 2
+        player.dashPlusTimer = 0
         player.isAttacked    = False
         player.opacifyF      = 1.0
         player.unheatCount   = 0
+        
+        player.hp = 100
+        player.power = 5
         
         #### 상태 관련 변수 ####
         player.state      = state['IDLE']
@@ -149,17 +154,23 @@ class Player:
             player.y += player.dy
             
             #### 잔상 업데이트 ####
-            player.afterX[player.dashCount] = player.x
-            player.afterY[player.dashCount] = player.y
-            player.afterIsOn[player.dashCount] = 1
+            player.afterX[player.dashTimer] = player.x
+            player.afterY[player.dashTimer] = player.y
+            player.afterIsOn[player.dashTimer] = 1
             
-            player.dashCount += 1
+            player.dashTimer += 1
             
-            if player.dashCount == 8:
+            if player.dashTimer == 8:
                 player.dx = 0
                 player.dy = 0
-                player.dashCount = 0
+                player.dashTimer = 0
                 player.state = state['JUMP']
+        
+        if player.dashCount < 2:
+            player.dashPlusTimer += game_framework.frame_time
+            if player.dashPlusTimer >= 1.5:
+                player.dashCount += 1
+                player.dashPlusTimer = 0
                 
         if player.state != state['DASH']:
             player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
@@ -167,7 +178,7 @@ class Player:
                 
         
         #### 잔상 업데이트 ####
-        for i in range(player.dashCount, 8):
+        for i in range(player.dashTimer, 8):
             player.afterOpacifyF[i] -= 0.1
             if player.afterOpacifyF[i] <= 0.0:
                 player.afterIsOn[i] = 0
@@ -183,14 +194,14 @@ class Player:
     def draw(player):
         #### 잔상 이미지 ####
         if player.direction == direction['LEFT']:
-                for i in range(player.dashCount, 8):
+                for i in range(player.dashTimer, 8):
                     if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
                             player.afterX[i], player.afterY[i], 85, 100)
                         player.afterImage[i].opacify(player.afterOpacifyF[i])
                     
         if player.direction == direction['RIGHT']:
-                for i in range(player.dashCount, 8):
+                for i in range(player.dashTimer, 8):
                     if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
                             player.afterX[i], player.afterY[i], 85, 100)
@@ -342,10 +353,12 @@ class Player:
                         player.weapon.shoot_Bullet(dx, dy, player)
                     
             #### 캐릭터 대쉬 ####
+            #### 마우스 오른쪽 눌림 ####
             if event.button == SDL_BUTTON_RIGHT:
-                if player.state != state['DASH']:
+                if player.state != state['DASH'] and player.dashCount != 0:
                     player.state = state['DASH']
-                    player.dashCount = 0
+                    player.dashTimer = 0
+                    player.dashCount -= 1
                     player.dx, player.dy = ((mouseX - player.x) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y) ** 2) * 45,
                            (900 - mouseY - player.y) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y)**2) * 45)
                     for i in range(8): # 잔상 초기화
