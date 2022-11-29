@@ -35,6 +35,7 @@ def all_objects():
 
 def add_collision_pairs(a, b, group):
     if group not in collision_group:
+        print('Create New Group')
         collision_group[group] = [[], []]
         
     if a:
@@ -65,6 +66,7 @@ def remove_collision_object(o):
 def remove_collision_pairs(a, b, group):
     if group not in collision_group:
         assert('group is not in collision_group')
+        
     if a:
         if type(b) is list:
             collision_group[group][1] -= b
@@ -73,9 +75,11 @@ def remove_collision_pairs(a, b, group):
             
     if b:
         if type(a) is list:
-            collision_group[group][0] == a
+            collision_group[group][0] -= a
         else:
             collision_group[group][0].remove(a)
+            
+    del group
 
 def clear():
     for o in all_objects():

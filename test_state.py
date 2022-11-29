@@ -14,6 +14,11 @@ ground    = None
 stepstone = None
 monster   = None
 
+sword         = None
+sickle        = None
+pistol        = None
+lightbringher = None
+
 def handle_events():
     events = get_events()
     for event in events:
@@ -27,6 +32,8 @@ def handle_events():
 # 초기화
 def enter():
     global player, ground, stepstone, monster
+    global sword, sickle, pistol, lightbringher
+    
     player    = Player()
     ground    = Ground()
     stepstone = Stepstone()
@@ -37,11 +44,13 @@ def enter():
     game_world.add_object(ground, 0)
     game_world.add_object(stepstone, 0)
     
-    game_world.add_collision_pairs(player, ground,    'player:ground')
-    game_world.add_collision_pairs(player, stepstone, 'player:stepstone')
+    game_world.add_collision_pairs(player,  ground,    'player:ground')
+    game_world.add_collision_pairs(player,  stepstone, 'player:stepstone')
     
     game_world.add_collision_pairs(monster, ground,    'monster:ground')
     game_world.add_collision_pairs(monster, stepstone, 'monster:stepstone')
+    
+    game_world.add_collision_pairs(player,  monster,   'player:monster')
     
 
 

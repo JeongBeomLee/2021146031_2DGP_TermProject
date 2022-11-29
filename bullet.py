@@ -29,23 +29,38 @@ class Bullet:
     
     #### 객체별 충돌처리 ####
     def handle_collision(bullet, other, group):
-        if group == 'Bullet:monster':
-            game_world.remove_object(bullet)
-            game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
+        if bullet.isOn:
+            if group == 'Bullet:monster':
+                bullet.isOn = False
+                game_world.remove_object(bullet)
+                game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
+                boomEffect = effects.BoomEffect(bullet)
+                game_world.add_object(boomEffect, 0)
+                
+            if group == 'Bullet:ground':
+                bullet.isOn = False
+                game_world.remove_object(bullet)
+                game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
+                boomEffect = effects.BoomEffect(bullet)
+                game_world.add_object(boomEffect, 0)
         
     def update(bullet):
-        bullet.x += bullet.dx
-        bullet.y += bullet.dy
+        if bullet.isOn:
+            bullet.x += bullet.dx
+            bullet.y += bullet.dy
         
         if bullet.x < 0 or bullet.x > 1600 or bullet.y < 0 or bullet.y > 900:
+            bullet.isOn = False
             game_world.remove_object(bullet)
             game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
+            game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
             
             
     def draw(bullet):
-        if bullet.direction == direction['LEFT']:
-            bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'n', bullet.x, bullet.y, 45, 25)
-        elif bullet.direction == direction['RIGHT']:
-            bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'h', bullet.x, bullet.y, 45, 25)
-        draw_rectangle(*bullet.get_bb())
+        if bullet.isOn:
+            if bullet.direction == direction['LEFT']:
+                bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'n', bullet.x, bullet.y, 45, 25)
+            elif bullet.direction == direction['RIGHT']:
+                bullet.image.clip_composite_draw(0, 0, 9, 5, radians(bullet.deg), 'h', bullet.x, bullet.y, 45, 25)
+            draw_rectangle(*bullet.get_bb())
         

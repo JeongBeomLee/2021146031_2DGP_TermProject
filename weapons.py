@@ -29,6 +29,7 @@ class ShortSword:
         self.y = 0
         self.backrender = True
         self.isAttack = False
+        self.attackCount = 0
     
     def update(self, player):
         global deg, mouseX, mouseY
@@ -50,6 +51,12 @@ class ShortSword:
                 self.x = player.x
                 self.y = player.y - 10
             
+        if self.isAttack:
+            self.attackCount += 1
+            if self.attackCount == 8:
+                self.attackCount = 0
+                self.isAttack = False
+                
     def draw(self, player):
         global deg
         
@@ -182,8 +189,6 @@ class LightBringer:
 
 class Pistol:
     image = None
-    firstShoot = False
-    
     def __init__(self):
         if Pistol.image == None:
             Pistol.image = load_image('resources/images/weapon/longDistanceWeapon/Pistol.png')
@@ -192,9 +197,9 @@ class Pistol:
         self.backrender  = False
         self.isAttack    = False
         self.recoilDeg   = 0
-        self.bulletCount = 10
         self.isReload    = False
-    
+        self.bulletCount = 10
+
     def update(self, player):
         global deg, mouseX, mouseY
         
@@ -240,9 +245,12 @@ class Pistol:
         Bullet = bullet.Bullet(self.x, self.y, dx, dy, deg, player)
         game_world.add_object(Bullet, 5)
         game_world.add_collision_pairs(Bullet, test_state.monster, 'Bullet:monster')
+        game_world.add_collision_pairs(Bullet, test_state.ground,  'Bullet:ground')
         self.bulletCount -= 1
             
-
+    def reload(self):
+        self.bulletCount = 10
+        self.isReload = False
 
 def get_Mouse(x, y):
     global mouseX, mouseY

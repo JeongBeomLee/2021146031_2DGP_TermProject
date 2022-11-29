@@ -34,20 +34,23 @@ class Arrow:
         pass
     
     def update(arrow):
-        arrow.x += arrow.dx * (arrow.speed + 1)
-        arrow.y += arrow.dy * (arrow.speed + 1)
-        effect = effects.LightBringerEffect(arrow.x, arrow.y)
-        game_world.add_object(effect, 0)
+        if arrow.isOn:
+            arrow.x += arrow.dx * (arrow.speed + 1)
+            arrow.y += arrow.dy * (arrow.speed + 1)
+            effect = effects.LightBringerEffect(arrow.x, arrow.y)
+            game_world.add_object(effect, 0)
         
         if arrow.x < 0 or arrow.x > 1600 or arrow.y < 0 or arrow.y > 900:
+            arrow.isOn = False;
             game_world.remove_object(arrow)
             game_world.remove_collision_pairs(arrow, test_state.monster, 'Arrow:monster')
             
             
     
     def draw(arrow):
-        if arrow.direction == direction['LEFT']:
-            arrow.image.clip_composite_draw(0, 0, 5, 26, radians(arrow.deg), 'n', arrow.x, arrow.y, 50, 260)
-        elif arrow.direction == direction['RIGHT']:
-            arrow.image.clip_composite_draw(0, 0, 5, 26, radians(arrow.deg), 'h', arrow.x, arrow.y, 50, 260)
-        draw_rectangle(*arrow.get_bb())
+        if arrow.isOn:
+            if arrow.direction == direction['LEFT']:
+                arrow.image.clip_composite_draw(0, 0, 5, 26, radians(arrow.deg), 'n', arrow.x, arrow.y, 50, 260)
+            elif arrow.direction == direction['RIGHT']:
+                arrow.image.clip_composite_draw(0, 0, 5, 26, radians(arrow.deg), 'h', arrow.x, arrow.y, 50, 260)
+            draw_rectangle(*arrow.get_bb())

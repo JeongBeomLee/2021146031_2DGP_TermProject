@@ -56,19 +56,22 @@ class Player:
             Player.dustImage = load_image('resources/images/Effect/Dash/DustEffect.png')
         
         #### 위치 관련 변수 ####
-        player.x          = 800
-        player.y          = 200
-        player.afterX     = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.afterY     = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.opacifyF   = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        player.afterIsOn  = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.frame      = 0
-        player.speedLR    = 0
-        player.jumpHeight = 0
-        player.jumpCount  = 0
-        player.dx         = 0
-        player.dy         = 0
-        player.dashCount  = 0
+        player.x             = 800
+        player.y             = 200
+        player.afterX        = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterY        = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.afterOpacifyF = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        player.afterIsOn     = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.frame         = 0
+        player.speedLR       = 0
+        player.jumpHeight    = 0
+        player.jumpCount     = 0
+        player.dx            = 0
+        player.dy            = 0
+        player.dashCount     = 0
+        player.isAttacked    = False
+        player.opacifyF      = 1.0
+        player.unheatCount   = 0
         
         #### 상태 관련 변수 ####
         player.state      = state['IDLE']
@@ -98,6 +101,10 @@ class Player:
                 player.state = state['IDLE']
             player.jumpHeight = 0
             player.jumpCount = 0
+            
+        if group == 'player:monster':
+            if player.unheatCount == 0:
+                player.isAttacked = True
     
     def update(player):
         # print('player.x : %d' %player.x)
@@ -111,8 +118,17 @@ class Player:
         # print('player.dashCount : %d' %player.dashCount)
         # print('player.state : %d' %player.state)
         # print('player.direction : %d' %player.direction)
-        
         global mouseX, mouseY
+        
+        #### 피격 이미지, 무적 시간 처리 ####
+        if player.isAttacked:
+            player.opacifyF = 0.5
+            player.unheatCount += game_framework.frame_time
+            if player.unheatCount >= 1.0:
+                player.opacifyF    = 1.0
+                player.unheatCount = 0
+                player.isAttacked  = False
+        
         if player.x > mouseX:
                 player.direction = direction['LEFT']
         elif player.x <= mouseX:
@@ -152,8 +168,8 @@ class Player:
         
         #### 잔상 업데이트 ####
         for i in range(player.dashCount, 8):
-            player.opacifyF[i] -= 0.1
-            if player.opacifyF[i] <= 0.0:
+            player.afterOpacifyF[i] -= 0.1
+            if player.afterOpacifyF[i] <= 0.0:
                 player.afterIsOn[i] = 0
                 player.afterX[i] = 0
                 player.afterY[i] = 0
@@ -171,22 +187,24 @@ class Player:
                     if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
                             player.afterX[i], player.afterY[i], 85, 100)
-                        player.afterImage[i].opacify(player.opacifyF[i])
+                        player.afterImage[i].opacify(player.afterOpacifyF[i])
                     
         if player.direction == direction['RIGHT']:
                 for i in range(player.dashCount, 8):
                     if player.afterIsOn[i]:
                         player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
                             player.afterX[i], player.afterY[i], 85, 100)
-                        player.afterImage[i].opacify(player.opacifyF[i])
+                        player.afterImage[i].opacify(player.afterOpacifyF[i])
                         
         #### 한손검은 휘두를 때 마다 앞에 그려줄지 뒤에 그려줄지 정해줌 ####
         if (player.weaponSort == weaponSort['sword'] and player.weapon.backrender == True) or player.weaponSort == weaponSort['pistol']:
+            player.hand.image.opacify(player.opacifyF)
             player.hand.draw()
             player.weapon.draw(player)
         
         #### IDLE ####
         if player.state == state['IDLE']:
+            player.idleImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
                 player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'h', player.x, player.y, 75, 100)
             if player.direction == direction['RIGHT']:
@@ -194,6 +212,7 @@ class Player:
         
         #### RUN ####    
         if player.state == state['RUN']:
+            player.runImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
                 player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
                 player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'h', player.x + 40, player.y - 25, 70, 65)
@@ -203,6 +222,7 @@ class Player:
                 
         #### JUMP ####
         if player.state == state['JUMP']:
+            player.jumpImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
                 player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
             if player.direction == direction['RIGHT']:
@@ -210,6 +230,7 @@ class Player:
         
         #### DASH ####
         if player.state == state['DASH']:
+            player.dashImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
                 player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
             if player.direction == direction['RIGHT']:
@@ -217,6 +238,7 @@ class Player:
         
         #### 무기 그리기 ####
         if player.weaponSort == weaponSort['sword'] and player.weapon.backrender == False:
+            player.hand.image.opacify(player.opacifyF)
             player.hand.draw()
             player.weapon.draw(player)
         elif player.weaponSort == weaponSort['sickle'] or player.weaponSort == weaponSort['lightbringer']:
@@ -312,11 +334,12 @@ class Player:
                 elif player.weaponSort == weaponSort['lightbringer']: # 활
                     player.weapon.isAttack = True
                 elif player.weaponSort == weaponSort['pistol']:
-                    player.weapon.isAttack = True
-                    player.weapon.append_Effect(player)
-                    dx, dy = ((mouseX - player.weapon.x) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y) ** 2) * 45,
-                           (900 - mouseY - player.weapon.y) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y)**2) * 45)
-                    player.weapon.shoot_Bullet(dx, dy, player)
+                    if not player.weapon.isReload:
+                        player.weapon.isAttack = True
+                        player.weapon.append_Effect(player)
+                        dx, dy = ((mouseX - player.weapon.x) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y) ** 2) * 45,
+                            (900 - mouseY - player.weapon.y) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y)**2) * 45)
+                        player.weapon.shoot_Bullet(dx, dy, player)
                     
             #### 캐릭터 대쉬 ####
             if event.button == SDL_BUTTON_RIGHT:
@@ -326,7 +349,7 @@ class Player:
                     player.dx, player.dy = ((mouseX - player.x) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y) ** 2) * 45,
                            (900 - mouseY - player.y) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y)**2) * 45)
                     for i in range(8): # 잔상 초기화
-                        player.opacifyF[i] = 1.0
+                        player.afterOpacifyF[i] = 1.0
                         
         #### 마우스 왼쪽 버튼 올림 ####
         elif event.type == SDL_MOUSEBUTTONUP:
@@ -334,7 +357,8 @@ class Player:
                 if player.weaponSort == weaponSort['lightbringer']: # 활
                     dx, dy = ((mouseX - player.weapon.x) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y) ** 2) * 45,
                            (900 - mouseY - player.weapon.y) / math.sqrt((mouseX - player.weapon.x)**2 + (900 - mouseY - player.weapon.y)**2) * 45)
-                    player.weapon.shoot_Arrow(dx, dy, player)
+                    if player.weapon.frame > 2:
+                        player.weapon.shoot_Arrow(dx, dy, player)
                     player.weapon.isAttack = False
                     player.weapon.frame = 0
                 if player.weaponSort == weaponSort['pistol']:
