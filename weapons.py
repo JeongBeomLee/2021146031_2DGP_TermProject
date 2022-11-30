@@ -188,7 +188,10 @@ class LightBringer:
         game_world.add_collision_pairs(Arrow, test_state.monster, 'Arrow:monster')
 
 class Pistol:
-    image = None
+    image       = None
+    bulletCount = 10
+    isReload    = False
+    
     def __init__(self):
         if Pistol.image == None:
             Pistol.image = load_image('resources/images/weapon/longDistanceWeapon/Pistol.png')
@@ -197,8 +200,8 @@ class Pistol:
         self.backrender  = False
         self.isAttack    = False
         self.recoilDeg   = 0
-        self.isReload    = False
-        self.bulletCount = 10
+        # self.isReload    = False
+        # self.bulletCount = 10
 
     def update(self, player):
         global deg, mouseX, mouseY
@@ -219,8 +222,8 @@ class Pistol:
             self.recoilDeg -= 5
         
         if self.bulletCount == 0:
-            if self.isReload == False:
-                self.isReload = True
+            if Pistol.isReload == False:
+                Pistol.isReload = True
                 reloadEffect = effects.ReloadEffect(player)
                 game_world.add_object(reloadEffect, 0)
             
@@ -246,12 +249,13 @@ class Pistol:
         game_world.add_object(Bullet, 5)
         game_world.add_collision_pairs(Bullet, test_state.monster, 'Bullet:monster')
         game_world.add_collision_pairs(Bullet, test_state.ground,  'Bullet:ground')
-        self.bulletCount -= 1
+        Pistol.bulletCount -= 1
             
-    def reload(self):
-        self.bulletCount = 10
-        self.isReload = False
 
+def pistol_Reload():
+    Pistol.bulletCount = 10
+    Pistol.isReload = False
+    
 def get_Mouse(x, y):
     global mouseX, mouseY
     

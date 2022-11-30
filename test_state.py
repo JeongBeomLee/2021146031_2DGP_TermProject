@@ -7,8 +7,9 @@ from test_map import Ground
 from test_map import Stepstone
 from monster  import Big_Skel_Sword
 
-import effects
+from cursor   import ShootingCursor
 
+cursor    = None
 player    = None
 ground    = None
 stepstone = None
@@ -28,17 +29,20 @@ def handle_events():
             game_framework.quit()
         else:
             player.handle_event(event)
+            cursor.handle_event(event)
 
 # 초기화
 def enter():
-    global player, ground, stepstone, monster
+    global player, ground, stepstone, monster, cursor
     global sword, sickle, pistol, lightbringher
     
+    cursor    = ShootingCursor()
     player    = Player()
     ground    = Ground()
     stepstone = Stepstone()
     monster   = Big_Skel_Sword()
     
+    game_world.add_object(cursor, 1)
     game_world.add_object(player, 1)
     game_world.add_object(monster, 1)
     game_world.add_object(ground, 0)

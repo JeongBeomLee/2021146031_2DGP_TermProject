@@ -1,8 +1,11 @@
 from pico2d import *
 import math
 import game_framework
+import game_world
 import weapons
 import player_hand
+import ui
+import effects
 
 
 # Player Run Speed
@@ -56,7 +59,7 @@ class Player:
             Player.dustImage = load_image('resources/images/Effect/Dash/DustEffect.png')
         
         #### 위치 관련 변수 ####
-        player.x             = 800
+        player.x             = 500
         player.y             = 200
         player.afterX        = [0, 0, 0, 0, 0, 0, 0, 0]
         player.afterY        = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -73,9 +76,10 @@ class Player:
         player.dashPlusTimer = 0
         player.isAttacked    = False
         player.opacifyF      = 1.0
-        player.unheatCount   = 0
+        player.unheatTimer   = 0
         
-        player.hp = 100
+        player.hpMax = 100
+        player.hp    = 100
         player.power = 5
         
         #### 상태 관련 변수 ####
@@ -85,6 +89,11 @@ class Player:
         player.hand       = player_hand.Hand(player)
         player.weaponSort = weaponSort['sword']
         player.weapon     = weapons.ShortSword()
+        
+        #### UI ####
+        player.lifeBar           = ui.PlayerLifeBar(player)
+        player.dashBar           = ui.PlayerDashBar(player)
+        player.equippedWeaponBar = ui.EquippedWeaponBar(player)
 
     #### 바운딩 박스 받기 ####
     def get_bb(player):
@@ -108,8 +117,11 @@ class Player:
             player.jumpCount = 0
             
         if group == 'player:monster':
-            if player.unheatCount == 0:
+            if player.unheatTimer == 0:
                 player.isAttacked = True
+                player.hp -= 10
+                warningEffect = effects.RedWarningOnHit()
+                game_world.add_object(warningEffect, 1)
     
     def update(player):
         # print('player.x : %d' %player.x)
@@ -128,10 +140,10 @@ class Player:
         #### 피격 이미지, 무적 시간 처리 ####
         if player.isAttacked:
             player.opacifyF = 0.5
-            player.unheatCount += game_framework.frame_time
-            if player.unheatCount >= 1.0:
+            player.unheatTimer += game_framework.frame_time
+            if player.unheatTimer >= 1.0:
                 player.opacifyF    = 1.0
-                player.unheatCount = 0
+                player.unheatTimer = 0
                 player.isAttacked  = False
         
         if player.x > mouseX:
@@ -185,11 +197,15 @@ class Player:
                 player.afterX[i] = 0
                 player.afterY[i] = 0
                 
-        
         #### 무기 업데이트 ####
         if player.weaponSort == weaponSort['sword'] or player.weaponSort == weaponSort['pistol']:
             player.hand.update(player)
         player.weapon.update(player)
+        
+        #### UI 업데이트 ####
+        player.lifeBar.update(player)
+        player.dashBar.update(player)
+        player.equippedWeaponBar.update(player)
 
     def draw(player):
         #### 잔상 이미지 ####
@@ -255,9 +271,12 @@ class Player:
         elif player.weaponSort == weaponSort['sickle'] or player.weaponSort == weaponSort['lightbringer']:
             player.weapon.draw(player)
             
-        draw_rectangle(*player.get_bb())
-            
+        #### UI ####
+        player.lifeBar.draw(player)
+        player.dashBar.draw()
+        player.equippedWeaponBar.draw()
         
+        draw_rectangle(*player.get_bb())
                 
     def handle_event(player, event):
         global mouseX, mouseY
@@ -270,14 +289,14 @@ class Player:
                 player.weaponSort = weaponSort['sickle']
                 player.weapon = weapons.PickaxeRed()
             if event.key == SDLK_3:
-                player.weaponSort = weaponSort['pistol']
-                player.weapon = weapons.Pistol()
-            if event.key == SDLK_4:
                 player.weaponSort = weaponSort['lightbringer']
                 player.weapon = weapons.LightBringer()
+            if event.key == SDLK_4:
+                player.weaponSort = weaponSort['pistol']
+                player.weapon = weapons.Pistol()
                 
             ##### W 눌림 #####
-            if event.key == SDLK_w:
+            if event.key == SDLK_w or event.key == SDLK_SPACE:
                 if player.jumpCount != 2:
                     if player.state != state['DASH']:
                         player.state = state['JUMP']
@@ -298,13 +317,19 @@ class Player:
                 pass
             ##### D 눌림 #####
             if event.key == SDLK_d:
-                player.speedLR  += 1
+                player.speedLR += 1
                 if player.state != state['JUMP'] and player.state != state['DASH']:
                     if player.state == state['RUN']:
                         player.state = state['IDLE']
                         return
                     player.state = state['RUN'] # 상태 변경
                     player.frame = 0 # 프레임 초기화
+            if event.key == SDLK_r:
+                if weapons.Pistol.isReload == False and weapons.Pistol.bulletCount != 10:
+                    weapons.Pistol.isReload = True
+                    reloadEffect = effects.ReloadEffect(player)
+                    game_world.add_object(reloadEffect, 0)
+            
             
         elif event.type == SDL_KEYUP:
             ##### W 올림 #####
@@ -326,6 +351,7 @@ class Player:
                     player.state = state['IDLE']
                     player.frame = 0
             
+        
         elif event.type == SDL_MOUSEMOTION:
             mouseX = event.x
             mouseY = event.y

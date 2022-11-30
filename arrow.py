@@ -46,6 +46,10 @@ class Arrow:
             game_world.remove_object(arrow)
             game_world.remove_collision_pairs(arrow, test_state.monster, 'Arrow:monster')
             
+            #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
+            arrow.x = 99999
+            arrow.y = 99999
+            
             
     
     def draw(arrow):

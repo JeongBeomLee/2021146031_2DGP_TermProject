@@ -49,8 +49,8 @@ class Big_Skel_Sword:
         monster.isAttacked  = False
         monster.unheatCount = 0
         
-        monster.hpMax = 50
-        monster.hp = 50
+        monster.hpMax = 500
+        monster.hp = 500
         monster.power = 10
         monster.lifeBar = ui.EnemyLifeBar(monster)
         
@@ -86,9 +86,9 @@ class Big_Skel_Sword:
             destroyEffect = effects.DestroyEffect(monster.x, monster.y)
             game_world.add_object(destroyEffect, 0)
             
-            #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 다른데로 보냄
-            monster.x = - 500
-            monster.y = - 500
+            #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
+            monster.x = - 99999
+            monster.y = - 99999
             
         
         if monster.isAttacked:

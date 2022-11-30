@@ -39,12 +39,20 @@ class Bullet:
                 boomEffect = effects.BoomEffect(bullet)
                 game_world.add_object(boomEffect, 0)
                 
+                #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
+                bullet.x = 99999
+                bullet.y = 99999
+                
             if group == 'Bullet:ground':
                 bullet.isOn = False
                 game_world.remove_object(bullet)
                 game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
                 boomEffect = effects.BoomEffect(bullet)
                 game_world.add_object(boomEffect, 0)
+                
+                #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
+                bullet.x = 99999
+                bullet.y = 99999
         
     def update(bullet):
         if bullet.isOn:
@@ -56,6 +64,10 @@ class Bullet:
             game_world.remove_object(bullet)
             game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
             game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
+            
+            #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
+            bullet.x = 99999
+            bullet.y = 99999
             
             
     def draw(bullet):

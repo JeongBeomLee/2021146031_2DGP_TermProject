@@ -3,6 +3,7 @@ from math import *
 import test_state
 import game_framework
 import game_world
+import weapons
 
 # 한손검 이펙트 프레임
 SSS_TIME_PER_ACTION    = 0.3
@@ -40,6 +41,11 @@ BE_FRAMES_PER_ACTION  = 6
 DE_TIME_PER_ACTION    = 0.3
 DE_ACTION_PER_TIME    = 1.0 / DE_TIME_PER_ACTION
 DE_FRAMES_PER_ACTION  = 11
+
+# 먼지 이펙트 프레임
+DUST_TIME_PER_ACTION    = 0.5
+DUST_ACTION_PER_TIME    = 1.0 / DUST_TIME_PER_ACTION
+DUST_FRAMES_PER_ACTION  = 6
 
 # 캐릭터 상태, 방향
 state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
@@ -250,7 +256,7 @@ class ReloadEffect:
             effect.reloadBarDX += RB_SPEED_PPS * game_framework.frame_time
             if effect.reloadBarDX >= 90:
                 effect.isOn = False
-                test_state.player.weapon.reload()
+                weapons.pistol_Reload()
         else:
             effect.frame = (effect.frame + RELOAD_FRAMES_PER_ACTION * RELOAD_ACTION_PER_TIME * game_framework.frame_time) % 4
             if int(effect.frame) >= 3:
@@ -300,7 +306,7 @@ class BoomEffect:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 13, radians(effect.deg - 90), 'h', effect.x, effect.y, 70, 65)
             elif effect.direction == 1:
                 effect.image.clip_composite_draw(int(effect.frame) * 14, 0, 14, 13, radians(effect.deg - 90), 'n', effect.x, effect.y, 70, 65)
-                
+            
 class DestroyEffect:
     image = None
     
@@ -324,3 +330,31 @@ class DestroyEffect:
     def draw(effect):
         if effect.isOn:
             effect.image.clip_composite_draw(int(effect.frame) * 40, 0, 40, 40, 0, 'n', effect.x, effect.y, 200, 200)
+            
+class RedWarningOnHit:
+    leftImage  = None
+    rightImage = None
+    
+    def __init__(effect):
+        if RedWarningOnHit.leftImage == None:
+            RedWarningOnHit.leftImage = load_image("resources/images/gameScene/ui/RedWarningOnHitLeft.png")
+        if RedWarningOnHit.rightImage == None:
+            RedWarningOnHit.rightImage = load_image("resources/images/gameScene/ui/RedWarningOnHitRight.png")
+        
+        effect.opacifyF = 1.0
+        effect.isOn = True    
+            
+    def update(effect):
+        if effect.isOn:
+            if effect.opacifyF <= 0.0:
+                effect.opacifyF = 0.0
+                effect.isOn = False
+                game_world.remove_object(effect)
+            effect.opacifyF -= 0.05
+    
+    def draw(effect):
+        if effect.isOn:
+            effect.leftImage.opacify(effect.opacifyF)
+            effect.rightImage.opacify(effect.opacifyF)
+            effect.leftImage.draw_to_origin(0, 0, 800, 900)
+            effect.rightImage.draw_to_origin(800, 0, 800, 900)
