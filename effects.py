@@ -1,6 +1,6 @@
 from pico2d import *
 from math import *
-import test_state
+import server
 import game_framework
 import game_world
 import weapons
@@ -48,7 +48,7 @@ DUST_ACTION_PER_TIME    = 1.0 / DUST_TIME_PER_ACTION
 DUST_FRAMES_PER_ACTION  = 6
 
 # 캐릭터 상태, 방향
-state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
+state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3, 'DIE' : 4}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
 class ShortSwordSwing:
@@ -89,7 +89,7 @@ class ShortSwordSwing:
                 effect.frame = 0.0
                 effect.isOn = False
                 game_world.remove_object(effect)
-                game_world.remove_collision_pairs(effect, test_state.monster, 'shortSwordEffect:monster')
+                game_world.remove_collision_pairs(effect, server.monster, 'shortSwordEffect:monster')
             effect.frame = (effect.frame + SSS_FRAMES_PER_ACTION * SSS_ACTION_PER_TIME * game_framework.frame_time) % 4
     
     def draw(effect):
@@ -141,7 +141,7 @@ class RedPickaxeSwing:
                 effect.frame = 0
                 effect.isOn = False
                 game_world.remove_object(effect)
-                game_world.remove_collision_pairs(effect, test_state.monster, 'pickaxeRedEffect:monster')
+                game_world.remove_collision_pairs(effect, server.monster, 'pickaxeRedEffect:monster')
                 
             effect.frame = (effect.frame + RPS_FRAMES_PER_ACTION * RPS_ACTION_PER_TIME * game_framework.frame_time) % 14
     
@@ -242,14 +242,14 @@ class ReloadEffect:
         effect.afterIsOn = False
             
     def update(effect):
-        effect.reloadBaseX = test_state.player.x
-        effect.reloadBaseY = test_state.player.y + 100
+        effect.reloadBaseX = server.player.x
+        effect.reloadBaseY = server.player.y + 100
         
-        effect.reloadBarX  = test_state.player.x - 35
-        effect.reloadBarY  = test_state.player.y + 100
+        effect.reloadBarX  = server.player.x - 35
+        effect.reloadBarY  = server.player.y + 100
         
-        effect.reloadX     = test_state.player.x
-        effect.reloadY     = test_state.player.y + 100
+        effect.reloadX     = server.player.x
+        effect.reloadY     = server.player.y + 100
         
         if effect.isOn:
             effect.reloadBarX  += effect.reloadBarDX
@@ -358,3 +358,32 @@ class RedWarningOnHit:
             effect.rightImage.opacify(effect.opacifyF)
             effect.leftImage.draw_to_origin(0, 0, 800, 900)
             effect.rightImage.draw_to_origin(800, 0, 800, 900)
+            
+class Damage:
+    font = None
+    
+    def __init__(effect, object, power):
+        if Damage.font == None:
+            Damage.font = load_font("resources/images/Font/DungGeunMo.ttf", 16)
+            
+        effect.x        = object.x
+        effect.y        = object.y
+        effect.dx       = 0.5
+        effect.dy       = 40
+        effect.opacipyF = 1.0
+        effect.text     = power
+        effect.isOn     = True
+        
+    def update(effect):
+        if effect.opacipyF <= 0:
+            effect.isOn = False
+            game_world.remove_object(effect)
+        if effect.isOn:
+            effect.y += (0.98 * 1 * (effect.dy)) / 10
+            effect.x += effect.dx
+            effect.dy -= 1
+            effect.opacipyF -= 0.02
+        
+    def draw(effect):
+        if effect.isOn:
+            effect.font.draw(effect.x, effect.y, 35, 60, f'{effect.text}', (255, 255, 255), effect.opacipyF)

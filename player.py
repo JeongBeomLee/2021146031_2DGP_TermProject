@@ -4,8 +4,10 @@ import game_framework
 import game_world
 import weapons
 import player_hand
+import player_feet
 import ui
 import effects
+import server
 
 
 # Player Run Speed
@@ -25,7 +27,7 @@ IDLE_ACTION_PER_TIME    = 1.0 / IDLE_TIME_PER_ACTION
 IDLE_FRAMES_PER_ACTION  = 5
 
 # 캐릭터 상태, 방향
-state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
+state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3, 'DIE' : 4}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
 # 무기
@@ -35,12 +37,13 @@ mouseX, mouseY = 0, 0
 deg = 0
         
 class Player:
-    idleImage = None
-    runImage  = None
-    jumpImage = None
-    dashImage = None
+    idleImage  = None
+    runImage   = None
+    jumpImage  = None
+    dashImage  = None
     afterImage = []
-    dustImage = None
+    dustImage  = None
+    dieImage   = None
     
     def __init__(player):
         #### 이미지 초기화 ####
@@ -52,6 +55,8 @@ class Player:
             Player.jumpImage = load_image('resources/images/Characters/Player/Costume/common/player_jump.png')
         if Player.dashImage == None:
             Player.dashImage = load_image('resources/images/Characters/Player/Costume/common/player_jump.png')
+        if Player.dieImage == None:
+            Player.dieImage = load_image('resources/images/Characters/Player/Costume/common/player_die.png')
         if len(Player.afterImage) == 0:
             for i in range(9):
                 Player.afterImage.append(load_image('resources/images/Effect/Dash/Shadow/base_player_jump_shadow.png'))
@@ -77,6 +82,9 @@ class Player:
         player.isAttacked    = False
         player.opacifyF      = 1.0
         player.unheatTimer   = 0
+        player.isOnStepstone = False
+        player.isOnGround    = True
+        player.sDown         = False
         
         player.hpMax = 100
         player.hp    = 100
@@ -87,6 +95,7 @@ class Player:
         player.direction  = direction['RIGHT']
         
         player.hand       = player_hand.Hand(player)
+        player.feet       = player_feet.Feet(player)
         player.weaponSort = weaponSort['sword']
         player.weapon     = weapons.ShortSword()
         
@@ -94,6 +103,9 @@ class Player:
         player.lifeBar           = ui.PlayerLifeBar(player)
         player.dashBar           = ui.PlayerDashBar(player)
         player.equippedWeaponBar = ui.EquippedWeaponBar(player)
+        
+        game_world.add_collision_pairs(player.feet, server.ground, 'feet:ground')
+        game_world.add_collision_pairs(player.feet, server.stepstone, 'feet:stepstone')
 
     #### 바운딩 박스 받기 ####
     def get_bb(player):
@@ -101,25 +113,10 @@ class Player:
     
     #### 객체별 충돌처리 ####
     def handle_collision(player, other, group):
-        #### 바닥 충돌처리 ####
-        if group == 'player:ground':
-            player.y = other.y + other.groundImage.h * 5 + 50 + 1   ### 땅의 바운딩박스 top + 플레이어 피봇 기준 발위치 + 1 pixel
-            if player.state == state['JUMP']:
-                player.state = state['IDLE']
-            player.jumpHeight = 0
-            player.jumpCount = 0
-            
-        if group == 'player:stepstone' and player.jumpHeight < 0:
-            player.y = other.y + other.stepstoneImage.h * 5 / 2 + 50 + 1
-            if player.state == state['JUMP']:
-                player.state = state['IDLE']
-            player.jumpHeight = 0
-            player.jumpCount = 0
-            
         if group == 'player:monster':
             if player.unheatTimer == 0:
                 player.isAttacked = True
-                player.hp -= 10
+                player.hp -= other.power
                 warningEffect = effects.RedWarningOnHit()
                 game_world.add_object(warningEffect, 1)
     
@@ -136,6 +133,15 @@ class Player:
         # print('player.state : %d' %player.state)
         # print('player.direction : %d' %player.direction)
         global mouseX, mouseY
+        
+        if not player.isOnGround and not player.isOnStepstone:
+            player.state = state['JUMP']
+        
+        if player.hp <= 0:
+            if player.state != state['DIE']:
+                player.state = state['DIE']
+                dieEffect = effects.DestroyEffect(player.x, player.y)
+                game_world.add_object(dieEffect, 1)
         
         #### 피격 이미지, 무적 시간 처리 ####
         if player.isAttacked:
@@ -188,6 +194,8 @@ class Player:
             player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
             player.y += 0.98 * 1 * (player.jumpHeight)
                 
+        #### 발 업데이트 ####
+        player.feet.update(player)
         
         #### 잔상 업데이트 ####
         for i in range(player.dashTimer, 8):
@@ -263,6 +271,15 @@ class Player:
             if player.direction == direction['RIGHT']:
                 player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.x, player.y, 85, 100)
         
+        #### DIE ####
+        if player.state == state['DIE']:
+            player.dieImage.opacify(player.opacifyF)
+            if player.direction == direction['LEFT']:
+                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'h', player.x, player.y, 115, 70)
+            if player.direction == direction['RIGHT']:
+                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'n', player.x, player.y, 115, 70)
+
+        
         #### 무기 그리기 ####
         if player.weaponSort == weaponSort['sword'] and player.weapon.backrender == False:
             player.hand.image.opacify(player.opacifyF)
@@ -276,7 +293,9 @@ class Player:
         player.dashBar.draw()
         player.equippedWeaponBar.draw()
         
-        draw_rectangle(*player.get_bb())
+        # draw_rectangle(*player.get_bb())
+        player.feet.draw()
+        
                 
     def handle_event(player, event):
         global mouseX, mouseY
@@ -296,7 +315,7 @@ class Player:
                 player.weapon = weapons.Pistol()
                 
             ##### W 눌림 #####
-            if event.key == SDLK_w or event.key == SDLK_SPACE:
+            if event.key == SDLK_w:
                 if player.jumpCount != 2:
                     if player.state != state['DASH']:
                         player.state = state['JUMP']
@@ -314,7 +333,7 @@ class Player:
                     player.frame = 0 # 프레임 초기화
             ##### S 눌림 #####    
             if event.key == SDLK_s:
-                pass
+                player.sDown = True
             ##### D 눌림 #####
             if event.key == SDLK_d:
                 player.speedLR += 1
@@ -329,7 +348,17 @@ class Player:
                     weapons.Pistol.isReload = True
                     reloadEffect = effects.ReloadEffect(player)
                     game_world.add_object(reloadEffect, 0)
-            
+            if event.key == SDLK_SPACE:
+                if player.sDown and player.isOnStepstone:
+                    player.state = state['JUMP']
+                    player.y -= 26
+                else:
+                    if player.jumpCount != 2:
+                        if player.state != state['DASH']:
+                            player.state = state['JUMP']
+                            player.jumpHeight = 25
+                            player.frame = 0
+                            player.jumpCount += 1       
             
         elif event.type == SDL_KEYUP:
             ##### W 올림 #####
@@ -343,7 +372,7 @@ class Player:
                     player.frame = 0 
             ##### S 올림 #####
             if event.key == SDLK_s:
-                pass
+                player.sDown = False
             ##### D 올림 #####
             if event.key == SDLK_d:
                 player.speedLR -= 1

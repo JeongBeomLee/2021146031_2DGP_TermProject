@@ -1,4 +1,5 @@
 from pico2d import *
+import server
 import game_framework
 import game_world
 
@@ -6,19 +7,9 @@ from player   import Player
 from test_map import Ground
 from test_map import Stepstone
 from monster  import Big_Skel_Sword
-
 from cursor   import ShootingCursor
 
-cursor    = None
-player    = None
-ground    = None
-stepstone = None
-monster   = None
 
-sword         = None
-sickle        = None
-pistol        = None
-lightbringher = None
 
 def handle_events():
     events = get_events()
@@ -28,35 +19,30 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
         else:
-            player.handle_event(event)
-            cursor.handle_event(event)
+            server.player.handle_event(event)
+            server.cursor.handle_event(event)
 
 # 초기화
 def enter():
-    global player, ground, stepstone, monster, cursor
-    global sword, sickle, pistol, lightbringher
+    server.cursor    = ShootingCursor()
+    server.ground    = Ground()
+    server.stepstone = Stepstone()
+    server.monster   = Big_Skel_Sword()
+    server.player    = Player()
     
-    cursor    = ShootingCursor()
-    player    = Player()
-    ground    = Ground()
-    stepstone = Stepstone()
-    monster   = Big_Skel_Sword()
+    game_world.add_object(server.cursor, 1)
+    game_world.add_object(server.ground, 0)
+    game_world.add_object(server.stepstone, 0)
+    game_world.add_object(server.monster, 1)
+    game_world.add_object(server.player, 1)
     
-    game_world.add_object(cursor, 1)
-    game_world.add_object(player, 1)
-    game_world.add_object(monster, 1)
-    game_world.add_object(ground, 0)
-    game_world.add_object(stepstone, 0)
+    # game_world.add_collision_pairs(server.player,  server.ground,    'player:ground')
+    # game_world.add_collision_pairs(server.player,  server.stepstone, 'player:stepstone')
     
-    game_world.add_collision_pairs(player,  ground,    'player:ground')
-    game_world.add_collision_pairs(player,  stepstone, 'player:stepstone')
+    game_world.add_collision_pairs(server.monster, server.ground,    'monster:ground')
+    game_world.add_collision_pairs(server.monster, server.stepstone, 'monster:stepstone')
     
-    game_world.add_collision_pairs(monster, ground,    'monster:ground')
-    game_world.add_collision_pairs(monster, stepstone, 'monster:stepstone')
-    
-    game_world.add_collision_pairs(player,  monster,   'player:monster')
-    
-
+    game_world.add_collision_pairs(server.player,  server.monster,   'player:monster')
 
 # 종료
 def exit():
@@ -86,10 +72,10 @@ def resume():
     pass
 
 def test_self():
-    import test_state
+    import server
 
     pico2d.open_canvas()
-    game_framework.run(test_state)
+    game_framework.run(server)
     pico2d.clear_canvas()
 
 if __name__ == '__main__':

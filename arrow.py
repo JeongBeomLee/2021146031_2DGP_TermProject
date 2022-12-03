@@ -2,7 +2,7 @@ from pico2d import *
 from math import *
 import effects
 import game_world
-import test_state
+import server
 
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
@@ -44,7 +44,7 @@ class Arrow:
         if arrow.x < 0 or arrow.x > 1600 or arrow.y < 0 or arrow.y > 900:
             arrow.isOn = False;
             game_world.remove_object(arrow)
-            game_world.remove_collision_pairs(arrow, test_state.monster, 'Arrow:monster')
+            game_world.remove_collision_pairs(arrow, server.monster, 'Arrow:monster')
             
             #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
             arrow.x = 99999

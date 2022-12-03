@@ -5,7 +5,8 @@ import game_framework, game_world
 import effects
 import arrow
 import bullet
-import test_state
+import server
+import server
 
 deg = 0
 mouseX, mouseY = 0, 0
@@ -16,7 +17,7 @@ LB_ACTION_PER_TIME    = 1.0 / LB_TIME_PER_ACTION
 LB_FRAMES_PER_ACTION  = 6
 
 # 캐릭터 상태, 방향
-state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
+state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3, 'DIE' : 4}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
 class ShortSword:
@@ -78,7 +79,7 @@ class ShortSword:
         game_world.add_object(shortSwordEffect, 2)
         # for monster in monsters:
         # game_world.add_collision_pairs(shortSwordEffect, test_state.monster, 'shortSwordEffect:monster')
-        game_world.add_collision_pairs(shortSwordEffect, test_state.monster, 'shortSwordEffect:monster')
+        game_world.add_collision_pairs(shortSwordEffect, server.monster, 'shortSwordEffect:monster')
 
 class PickaxeRed:
     image = None
@@ -141,7 +142,7 @@ class PickaxeRed:
         global deg
         pickaxeRedEffect = effects.RedPickaxeSwing(deg, player)
         game_world.add_object(pickaxeRedEffect, 2)
-        game_world.add_collision_pairs(pickaxeRedEffect, test_state.monster, 'pickaxeRedEffect:monster')
+        game_world.add_collision_pairs(pickaxeRedEffect, server.monster, 'pickaxeRedEffect:monster')
         
 
 class LightBringer:
@@ -185,7 +186,7 @@ class LightBringer:
         global deg
         Arrow = arrow.Arrow(self.x, self.y, dx, dy, int(self.frame), deg, player)
         game_world.add_object(Arrow, 4)
-        game_world.add_collision_pairs(Arrow, test_state.monster, 'Arrow:monster')
+        game_world.add_collision_pairs(Arrow, server.monster, 'Arrow:monster')
 
 class Pistol:
     image       = None
@@ -247,8 +248,8 @@ class Pistol:
         global deg
         Bullet = bullet.Bullet(self.x, self.y, dx, dy, deg, player)
         game_world.add_object(Bullet, 5)
-        game_world.add_collision_pairs(Bullet, test_state.monster, 'Bullet:monster')
-        game_world.add_collision_pairs(Bullet, test_state.ground,  'Bullet:ground')
+        game_world.add_collision_pairs(Bullet, server.monster, 'Bullet:monster')
+        game_world.add_collision_pairs(Bullet, server.ground,  'Bullet:ground')
         Pistol.bulletCount -= 1
             
 

@@ -5,7 +5,7 @@ import game_world
 import math
 import random
 
-import test_state
+import server
 import ui
 import effects
 
@@ -70,14 +70,22 @@ class Big_Skel_Sword:
             if monster.unheatCount == 0:
                 monster.isAttacked = True
                 monster.hp -= other.power
-        elif group == 'pickaxeRedEffect:monster' and test_state.player.weapon.isAttack:
+                damageEffect = effects.Damage(monster, other.power)
+                game_world.add_object(damageEffect, 0)
+                
+        elif group == 'pickaxeRedEffect:monster' and server.player.weapon.isAttack:
             if monster.unheatCount == 0:
                 monster.isAttacked = True
                 monster.hp -= other.power
-        elif group == 'shortSwordEffect:monster' and test_state.player.weapon.isAttack:
+                damageEffect = effects.Damage(monster, other.power)
+                game_world.add_object(damageEffect, 0)
+                
+        elif group == 'shortSwordEffect:monster' and server.player.weapon.isAttack:
             if monster.unheatCount == 0:
                 monster.isAttacked = True
                 monster.hp -= other.power
+                damageEffect = effects.Damage(monster, other.power)
+                game_world.add_object(damageEffect, 0)
     
     def update(monster):
         if monster.hp <= 0:

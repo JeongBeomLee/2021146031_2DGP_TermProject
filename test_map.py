@@ -41,7 +41,7 @@ class Stepstone:
         pass
     
     def get_bb(self):
-        return self.x - self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2 - 1,  self.x + self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2
+        return self.x - self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2 - 5,  self.x + self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2
     
     #### 객체별 충돌처리 ####
     def handle_collision(self, other, group):

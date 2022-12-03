@@ -2,7 +2,7 @@ from pico2d import *
 from math import *
 import effects
 import game_world
-import test_state
+import server
 
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
@@ -35,7 +35,7 @@ class Bullet:
             if group == 'Bullet:monster':
                 bullet.isOn = False
                 game_world.remove_object(bullet)
-                game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
+                game_world.remove_collision_pairs(bullet, server.monster, 'Bullet:monster')
                 boomEffect = effects.BoomEffect(bullet)
                 game_world.add_object(boomEffect, 0)
                 
@@ -46,7 +46,7 @@ class Bullet:
             if group == 'Bullet:ground':
                 bullet.isOn = False
                 game_world.remove_object(bullet)
-                game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
+                game_world.remove_collision_pairs(bullet, server.ground, 'Bullet:ground')
                 boomEffect = effects.BoomEffect(bullet)
                 game_world.add_object(boomEffect, 0)
                 
@@ -62,8 +62,8 @@ class Bullet:
         if bullet.x < 0 or bullet.x > 1600 or bullet.y < 0 or bullet.y > 900:
             bullet.isOn = False
             game_world.remove_object(bullet)
-            game_world.remove_collision_pairs(bullet, test_state.monster, 'Bullet:monster')
-            game_world.remove_collision_pairs(bullet, test_state.ground, 'Bullet:ground')
+            game_world.remove_collision_pairs(bullet, server.monster, 'Bullet:monster')
+            game_world.remove_collision_pairs(bullet, server.ground, 'Bullet:ground')
             
             #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
             bullet.x = 99999

@@ -1,7 +1,7 @@
 from pico2d import *
 
 # 캐릭터 상태, 방향
-state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3}
+state      = {'IDLE'  : 0,  'RUN' : 1, 'JUMP' : 2, 'DASH' : 3, 'DIE' : 4}
 direction  = {'RIGHT' : 1, 'LEFT' : 0}
 
 class Hand:
