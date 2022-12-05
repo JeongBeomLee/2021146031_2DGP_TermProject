@@ -18,14 +18,14 @@ class EnemyLifeBar:
         if EnemyLifeBar.backImage == None:
             EnemyLifeBar.backImage = load_image("resources/images/gameScene/ui/LifeBarBack.png")
             
-        ui.x    = object.x - 50
-        ui.y    = object.y - (object.h // 2) - 50
+        ui.x    = object.sx - 50
+        ui.y    = object.sy - (object.h // 2) - 50
         ui.hp   = object.hp
         ui.isOn = True    
             
     def update(ui, object):
-        ui.x  = object.x - 50
-        ui.y  = object.y - (object.h // 2) - 50
+        ui.x  = object.sx - 50
+        ui.y  = object.sy - (object.h // 2) - 50
         ui.hp = object.hp
     
     def draw(ui, object):

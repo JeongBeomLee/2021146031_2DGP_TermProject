@@ -27,11 +27,11 @@ class Arrow:
             arrow.direction = direction['RIGHT']
     
     #### 바운딩 박스 받기 ####
-    def get_bb(bullet):
-        return bullet.x - 130, bullet.y - 20, bullet.x + 130, bullet.y + 20
+    def get_bb(arrow):
+        return arrow.x - 130, arrow.y - 20, arrow.x + 130, arrow.y + 20
     
     #### 객체별 충돌처리 ####
-    def handle_collision(bullet, other, group):
+    def handle_collision(arrow, other, group):
         pass
     
     def update(arrow):

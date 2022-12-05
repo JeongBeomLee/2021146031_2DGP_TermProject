@@ -4,10 +4,10 @@ import game_framework
 import game_world
 
 from player   import Player
-from objects import Ground
-from objects import Stepstone
 from monster  import Big_Skel_Sword
 from cursor   import ShootingCursor
+from map      import VilliageTileMap
+from objects  import Ground
 
 
 
@@ -24,25 +24,26 @@ def handle_events():
 
 # 초기화
 def enter():
-    server.cursor    = ShootingCursor()
-    server.ground    = Ground()
-    server.stepstone = Stepstone()
-    server.monster   = Big_Skel_Sword()
-    server.player    = Player()
+    server.map       = VilliageTileMap()
+    game_world.add_object(server.map, 0)
     
+    ground = Ground(0, 0, 1600 * 4, 32 * 5 - 5)
+    server.ground.append(ground)
+    game_world.add_objects(server.ground, 0)
+    
+    server.cursor    = ShootingCursor()
     game_world.add_object(server.cursor, 1)
-    game_world.add_object(server.ground, 0)
-    game_world.add_object(server.stepstone, 0)
-    game_world.add_object(server.monster, 1)
+    server.player    = Player()
     game_world.add_object(server.player, 1)
+    
+    server.monster   = Big_Skel_Sword()
+    game_world.add_object(server.monster, 1)
+    
     
     # game_world.add_collision_pairs(server.player,  server.ground,    'player:ground')
     # game_world.add_collision_pairs(server.player,  server.stepstone, 'player:stepstone')
     
-    game_world.add_collision_pairs(server.monster, server.ground,    'monster:ground')
-    game_world.add_collision_pairs(server.monster, server.stepstone, 'monster:stepstone')
-    
-    game_world.add_collision_pairs(server.player,  server.monster,   'player:monster')
+    # game_world.add_collision_pairs(server.player,  server.monster,   'player:monster')
 
 # 종료
 def exit():

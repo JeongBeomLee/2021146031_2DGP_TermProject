@@ -6,7 +6,6 @@ import effects
 import arrow
 import bullet
 import server
-import server
 
 deg = 0
 mouseX, mouseY = 0, 0
@@ -35,22 +34,22 @@ class ShortSword:
     def update(self, player):
         global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.sy), (mouseX - player.sx)) * 180 / pi + 100
         if player.direction == direction['LEFT']:
             if self.backrender:
-                self.x = player.x - 15
-                self.y = player.y - 10
+                self.x = player.sx - 15
+                self.y = player.sy - 10
             else:
-                self.x = player.x
-                self.y = player.y - 10
+                self.x = player.sx
+                self.y = player.sy - 10
             
         elif player.direction == direction['RIGHT']:
             if self.backrender:
-                self.x = player.x + 15
-                self.y = player.y - 10
+                self.x = player.sx + 15
+                self.y = player.sy - 10
             else:
-                self.x = player.x
-                self.y = player.y - 10
+                self.x = player.sx
+                self.y = player.sy - 10
             
         if self.isAttack:
             self.attackCount += 1
@@ -117,17 +116,17 @@ class PickaxeRed:
                 self.isAttack = False
         else:
             if player.direction == direction['LEFT']:
-                    deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi
+                    deg = atan2(((900 - mouseY) - player.sy), (mouseX - player.sx)) * 180 / pi
             elif player.direction == direction['RIGHT']:
-                    deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 180
+                    deg = atan2(((900 - mouseY) - player.sy), (mouseX - player.sx)) * 180 / pi + 180
         
         if player.direction == direction['LEFT']:
-            self.x = player.x - 25
-            self.y = player.y - 20
+            self.x = player.sx - 25
+            self.y = player.sy - 20
                 
         elif player.direction == direction['RIGHT']:
-            self.x = player.x + 25
-            self.y = player.y - 20
+            self.x = player.sx + 25
+            self.y = player.sy - 20
     
     def draw(self, player):
         global deg
@@ -160,14 +159,14 @@ class LightBringer:
     def update(self, player):
         global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100
+        deg = atan2(((900 - mouseY) - player.sy), (mouseX - player.sx)) * 180 / pi + 100
         if player.direction == direction['LEFT']:
-            self.x = player.x - 15
-            self.y = player.y - 10
+            self.x = player.sx - 15
+            self.y = player.sy - 10
             
         elif player.direction == direction['RIGHT']:
-            self.x = player.x + 15
-            self.y = player.y - 10
+            self.x = player.sx + 15
+            self.y = player.sy - 10
         
         if self.isAttack:
             if self.frame < 3.5:
@@ -207,14 +206,14 @@ class Pistol:
     def update(self, player):
         global deg, mouseX, mouseY
         
-        deg = atan2(((900 - mouseY) - player.y), (mouseX - player.x)) * 180 / pi + 100 
+        deg = atan2(((900 - mouseY) - player.sy), (mouseX - player.sx)) * 180 / pi + 100 
         if player.direction == direction['LEFT']:
-            self.x = player.x - 40
-            self.y = player.y - 10
+            self.x = player.sx - 40
+            self.y = player.sy - 10
             
         elif player.direction == direction['RIGHT']:
-            self.x = player.x + 40
-            self.y = player.y - 10
+            self.x = player.sx + 40
+            self.y = player.sy - 10
         
         if self.isAttack:
             self.recoilDeg = 30

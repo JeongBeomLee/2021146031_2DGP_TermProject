@@ -8,8 +8,8 @@ class Hand:
     image = None
     
     def __init__(hand, player):
-        hand.x = player.x - 35
-        hand.y = player.y - 25
+        hand.x = player.sx - 35
+        hand.y = player.sy - 25
         if Hand.image == None:
             Hand.image = load_image('resources/images/Characters/Player/Costume/common/player_hand.png')
         
@@ -18,25 +18,25 @@ class Hand:
         global state
         if player.state == state['IDLE']:
             if player.direction == direction['LEFT']:
-                hand.x = player.x + 35
+                hand.x = player.sx + 35
             elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 35
+                hand.x = player.sx - 35
         if player.state == state['RUN']:
             if player.direction == direction['LEFT']:
-                hand.x = player.x + 35
+                hand.x = player.sx + 35
             elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 35
+                hand.x = player.sx - 35
         if player.state == state['JUMP']:
             if player.direction == direction['LEFT']:
-                hand.x = player.x + 30
+                hand.x = player.sx + 30
             elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 30
+                hand.x = player.sx - 30
         if player.state == state['DASH']:
             if player.direction == direction['LEFT']:
-                hand.x = player.x + 30
+                hand.x = player.sx + 30
             elif player.direction == direction['RIGHT']:
-                hand.x = player.x - 30
-        hand.y = player.y - 25
+                hand.x = player.sx - 30
+        hand.y = player.sy - 25
         pass
     
     def draw(hand):

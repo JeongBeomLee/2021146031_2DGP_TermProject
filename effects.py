@@ -58,11 +58,11 @@ class ShortSwordSwing:
             ShortSwordSwing.image = load_image('resources/images/weapon/MeleeWeapon/SwingFX.png')
         
         if player.direction == direction['LEFT']:
-            effect.x = player.x - 100 * cos(radians(weaponDeg + 90))
-            effect.y = player.y - 100 * sin(radians(weaponDeg + 90))
+            effect.x = player.sx - 100 * cos(radians(weaponDeg + 90))
+            effect.y = player.sy - 100 * sin(radians(weaponDeg + 90))
         if player.direction == direction['RIGHT']:
-            effect.x = player.x + 100 * cos(radians(weaponDeg - 90))
-            effect.y = player.y - 100 * sin(radians(weaponDeg + 90))
+            effect.x = player.sx + 100 * cos(radians(weaponDeg - 90))
+            effect.y = player.sy - 100 * sin(radians(weaponDeg + 90))
             
         if player.direction == direction['LEFT']:
             effect.direction = 0
@@ -111,11 +111,11 @@ class RedPickaxeSwing:
             RedPickaxeSwing.rectImage = load_image('resources/images/weapon/MeleeWeapon/RedPickaxeSwingRect.png')
             
         if player.direction == direction['LEFT']:
-            effect.x = player.x + 165 * cos(radians(weaponDeg))
-            effect.y = player.y + 165 * sin(radians(weaponDeg))
+            effect.x = player.sx + 165 * cos(radians(weaponDeg))
+            effect.y = player.sy + 165 * sin(radians(weaponDeg))
         if player.direction == direction['RIGHT']:
-            effect.x = player.x - 165 * cos(radians(weaponDeg))
-            effect.y = player.y - 165 * sin(radians(weaponDeg))
+            effect.x = player.sx - 165 * cos(radians(weaponDeg))
+            effect.y = player.sy - 165 * sin(radians(weaponDeg))
         
         if player.direction == direction['LEFT']:
             effect.direction = 0
@@ -227,29 +227,29 @@ class ReloadEffect:
         if ReloadEffect.reloadImage == None:
             ReloadEffect.reloadImage = load_image("resources/images/weapon/longDistanceWeapon/effect/Reload.png")    
 
-        effect.reloadBaseX = player.x
-        effect.reloadBaseY = player.y + 100
+        effect.reloadBaseX = player.sx
+        effect.reloadBaseY = player.sy + 100
         
-        effect.reloadBarX  = player.x - 35
-        effect.reloadBarY  = player.y + 100
+        effect.reloadBarX  = player.sx - 35
+        effect.reloadBarY  = player.sy + 100
         effect.reloadBarDX = 0.0
         
-        effect.reloadX     = player.x
-        effect.reloadY     = player.y + 100
+        effect.reloadX     = player.sx
+        effect.reloadY     = player.sy + 100
         
         effect.isOn      = True
         effect.frame     = 0.0
         effect.afterIsOn = False
             
     def update(effect):
-        effect.reloadBaseX = server.player.x
-        effect.reloadBaseY = server.player.y + 100
+        effect.reloadBaseX = server.player.sx
+        effect.reloadBaseY = server.player.sy + 100
         
-        effect.reloadBarX  = server.player.x - 35
-        effect.reloadBarY  = server.player.y + 100
+        effect.reloadBarX  = server.player.sx - 35
+        effect.reloadBarY  = server.player.sy + 100
         
-        effect.reloadX     = server.player.x
-        effect.reloadY     = server.player.y + 100
+        effect.reloadX     = server.player.sx
+        effect.reloadY     = server.player.sy + 100
         
         if effect.isOn:
             effect.reloadBarX  += effect.reloadBarDX

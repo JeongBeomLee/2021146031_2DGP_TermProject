@@ -33,6 +33,9 @@ direction  = {'RIGHT' : 1, 'LEFT' : 0}
 # 무기
 weaponSort = {'sword' : 0, 'sickle' : 1, 'pistol' : 2, 'lightbringer' : 3}
 
+# 맵
+mapSort = {'VILLIAGE' : 0, 'MOVE' : 1, 'JUMP' : 2, 'DASH' : 3, 'BATTLE' : 4, 'BOSS' : 5}
+
 mouseX, mouseY = 0, 0
 deg = 0
         
@@ -41,7 +44,6 @@ class Player:
     runImage   = None
     jumpImage  = None
     dashImage  = None
-    afterImage = []
     dustImage  = None
     dieImage   = None
     
@@ -57,19 +59,14 @@ class Player:
             Player.dashImage = load_image('resources/images/Characters/Player/Costume/common/player_jump.png')
         if Player.dieImage == None:
             Player.dieImage = load_image('resources/images/Characters/Player/Costume/common/player_die.png')
-        if len(Player.afterImage) == 0:
-            for i in range(9):
-                Player.afterImage.append(load_image('resources/images/Effect/Dash/Shadow/base_player_jump_shadow.png'))
         if Player.dustImage == None:
             Player.dustImage = load_image('resources/images/Effect/Dash/DustEffect.png')
         
         #### 위치 관련 변수 ####
         player.x             = 500
         player.y             = 200
-        player.afterX        = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.afterY        = [0, 0, 0, 0, 0, 0, 0, 0]
-        player.afterOpacifyF = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        player.afterIsOn     = [0, 0, 0, 0, 0, 0, 0, 0]
+        player.sx            = 500 - server.map.window_left
+        player.sy            = 200 - server.map.window_bottom
         player.frame         = 0
         player.speedLR       = 0
         player.jumpHeight    = 0
@@ -104,12 +101,13 @@ class Player:
         player.dashBar           = ui.PlayerDashBar(player)
         player.equippedWeaponBar = ui.EquippedWeaponBar(player)
         
-        game_world.add_collision_pairs(player.feet, server.ground, 'feet:ground')
-        game_world.add_collision_pairs(player.feet, server.stepstone, 'feet:stepstone')
+        for ground in server.ground:
+            game_world.add_collision_pairs(player.feet, ground, 'feet:ground')
+        # game_world.add_collision_pairs(player.feet, server.stepstone, 'feet:stepstone')
 
     #### 바운딩 박스 받기 ####
     def get_bb(player):
-        return player.x - 32.5, player.y - 50, player.x + 32.5, player.y + 50
+        return player.sx - 32.5, player.sy - 50, player.sx + 32.5, player.sy + 50
     
     #### 객체별 충돌처리 ####
     def handle_collision(player, other, group):
@@ -121,18 +119,8 @@ class Player:
                 game_world.add_object(warningEffect, 1)
     
     def update(player):
-        # print('player.x : %d' %player.x)
-        # print('player.y : %d' %player.y)
-        # print('player.frame : %d' %player.frame)
-        # print('player.dx : %d' %player.dx)
-        # print('player.dy : %d' %player.dy)
-        # print('player.speedLR : %d' %player.speedLR)
-        # print('player.jumpHeight : %d' %player.jumpHeight)
-        # print('player.jumpCount : %d' %player.jumpCount)
-        # print('player.dashCount : %d' %player.dashCount)
-        # print('player.state : %d' %player.state)
-        # print('player.direction : %d' %player.direction)
         global mouseX, mouseY
+        player.sx, player.sy = player.x - server.map.window_left, player.y - server.map.window_bottom
         
         if not player.isOnGround and not player.isOnStepstone:
             player.state = state['JUMP']
@@ -140,7 +128,7 @@ class Player:
         if player.hp <= 0:
             if player.state != state['DIE']:
                 player.state = state['DIE']
-                dieEffect = effects.DestroyEffect(player.x, player.y)
+                dieEffect = effects.DestroyEffect(player.sx, player.sy)
                 game_world.add_object(dieEffect, 1)
         
         #### 피격 이미지, 무적 시간 처리 ####
@@ -152,9 +140,9 @@ class Player:
                 player.unheatTimer = 0
                 player.isAttacked  = False
         
-        if player.x > mouseX:
+        if player.sx > mouseX:
                 player.direction = direction['LEFT']
-        elif player.x <= mouseX:
+        elif player.sx <= mouseX:
                 player.direction = direction['RIGHT']
         
         if player.state == state['IDLE']: # idle상태 일 때
@@ -166,19 +154,14 @@ class Player:
             player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 8
             
         player.jumpHeight -= 1 # h 감소
-                
+               
         if player.state == state['DASH']:
             player.x += player.dx
             player.y += player.dy
             
-            #### 잔상 업데이트 ####
-            player.afterX[player.dashTimer] = player.x
-            player.afterY[player.dashTimer] = player.y
-            player.afterIsOn[player.dashTimer] = 1
+            player.dashTimer += game_framework.frame_time
             
-            player.dashTimer += 1
-            
-            if player.dashTimer == 8:
+            if player.dashTimer >= 0.1:
                 player.dx = 0
                 player.dy = 0
                 player.dashTimer = 0
@@ -193,17 +176,13 @@ class Player:
         if player.state != state['DASH']:
             player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
             player.y += 0.98 * 1 * (player.jumpHeight)
+            
+            if server.map.sort == mapSort['VILLIAGE']:
+                player.x = clamp(0, player.x, 1600 * 4)
+                player.y = clamp(0, player.y, 900 * 2)
                 
-        #### 발 업데이트 ####
+        #### 발 업데이트 (바닥충돌) ####
         player.feet.update(player)
-        
-        #### 잔상 업데이트 ####
-        for i in range(player.dashTimer, 8):
-            player.afterOpacifyF[i] -= 0.1
-            if player.afterOpacifyF[i] <= 0.0:
-                player.afterIsOn[i] = 0
-                player.afterX[i] = 0
-                player.afterY[i] = 0
                 
         #### 무기 업데이트 ####
         if player.weaponSort == weaponSort['sword'] or player.weaponSort == weaponSort['pistol']:
@@ -216,21 +195,6 @@ class Player:
         player.equippedWeaponBar.update(player)
 
     def draw(player):
-        #### 잔상 이미지 ####
-        if player.direction == direction['LEFT']:
-                for i in range(player.dashTimer, 8):
-                    if player.afterIsOn[i]:
-                        player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
-                            player.afterX[i], player.afterY[i], 85, 100)
-                        player.afterImage[i].opacify(player.afterOpacifyF[i])
-                    
-        if player.direction == direction['RIGHT']:
-                for i in range(player.dashTimer, 8):
-                    if player.afterIsOn[i]:
-                        player.afterImage[i].clip_composite_draw(0, 0, 17, 20, 0, 'h', \
-                            player.afterX[i], player.afterY[i], 85, 100)
-                        player.afterImage[i].opacify(player.afterOpacifyF[i])
-                        
         #### 한손검은 휘두를 때 마다 앞에 그려줄지 뒤에 그려줄지 정해줌 ####
         if (player.weaponSort == weaponSort['sword'] and player.weapon.backrender == True) or player.weaponSort == weaponSort['pistol']:
             player.hand.image.opacify(player.opacifyF)
@@ -241,43 +205,43 @@ class Player:
         if player.state == state['IDLE']:
             player.idleImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
-                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'h', player.x, player.y, 75, 100)
+                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'h', player.sx, player.sy, 75, 100)
             if player.direction == direction['RIGHT']:
-                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'n', player.x, player.y, 75, 100)
+                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'n', player.sx, player.sy, 75, 100)
         
         #### RUN ####    
         if player.state == state['RUN']:
             player.runImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
-                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
-                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'h', player.x + 40, player.y - 25, 70, 65)
+                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
+                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'h', player.sx + 40, player.sy - 25, 70, 65)
             if player.direction == direction['RIGHT']:
-                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'n', player.x, player.y, 85, 100)
-                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'n', player.x - 40, player.y - 25, 70, 65)
+                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
+                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'n', player.sx - 40, player.sy - 25, 70, 65)
                 
         #### JUMP ####
         if player.state == state['JUMP']:
             player.jumpImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
-                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
+                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
             if player.direction == direction['RIGHT']:
-                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.x, player.y, 85, 100)
+                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
         
         #### DASH ####
         if player.state == state['DASH']:
             player.dashImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
-                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.x, player.y, 85, 100)
+                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
             if player.direction == direction['RIGHT']:
-                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.x, player.y, 85, 100)
+                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
         
         #### DIE ####
         if player.state == state['DIE']:
             player.dieImage.opacify(player.opacifyF)
             if player.direction == direction['LEFT']:
-                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'h', player.x, player.y, 115, 70)
+                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'h', player.sx, player.sy, 115, 70)
             if player.direction == direction['RIGHT']:
-                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'n', player.x, player.y, 115, 70)
+                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'n', player.sx, player.sy, 115, 70)
 
         
         #### 무기 그리기 ####
@@ -414,10 +378,8 @@ class Player:
                     player.state = state['DASH']
                     player.dashTimer = 0
                     player.dashCount -= 1
-                    player.dx, player.dy = ((mouseX - player.x) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y) ** 2) * 45,
-                           (900 - mouseY - player.y) / math.sqrt((mouseX - player.x)**2 + (900 - mouseY - player.y)**2) * 45)
-                    for i in range(8): # 잔상 초기화
-                        player.afterOpacifyF[i] = 1.0
+                    player.dx, player.dy = ((mouseX - player.sx) / math.sqrt((mouseX - player.sx)**2 + (900 - mouseY - player.sy) ** 2) * 45,
+                           (900 - mouseY - player.sy) / math.sqrt((mouseX - player.sx)**2 + (900 - mouseY - player.sy)**2) * 45)
                         
         #### 마우스 왼쪽 버튼 올림 ####
         elif event.type == SDL_MOUSEBUTTONUP:

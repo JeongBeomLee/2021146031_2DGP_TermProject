@@ -69,14 +69,14 @@ def remove_collision_pairs(a, b, group):
         
     if a:
         if type(b) is list:
-            collision_group[group][1] -= b
+            collision_group[group][1].clear()
         else:
             if b in collision_group[group][1]:
                 collision_group[group][1].remove(b)
             
     if b:
         if type(a) is list:
-            collision_group[group][0] -= a
+            collision_group[group][0].clear()
         else:
             if a in collision_group[group][0]:
                 collision_group[group][0].remove(a)

@@ -9,6 +9,8 @@ import server
 import ui
 import effects
 
+mapSort = {'VILLIAGE' : 0, 'MOVE' : 1, 'JUMP' : 2, 'DASH' : 3, 'BATTLE' : 4, 'BOSS' : 5}
+
 ghost_state = {'attack' : 0}
 ghost_direction = {'left' : 0, 'right' : 1}
 
@@ -42,6 +44,8 @@ class Big_Skel_Sword:
             
         monster.x           = 800
         monster.y           = 200
+        monster.sx          = 800
+        monster.sy          = 200
         monster.w           = Big_Skel_Sword.idleImage.w * 5
         monster.h           = Big_Skel_Sword.idleImage.h * 5
         monster.frame       = 0
@@ -55,7 +59,7 @@ class Big_Skel_Sword:
         monster.lifeBar = ui.EnemyLifeBar(monster)
         
     def get_bb(monster):
-        return monster.x - 16.5 * 5, monster.y - 75, monster.x + 16.5 * 5, monster.y + 75
+        return monster.sx - 16.5 * 5, monster.sy - 75, monster.sx + 16.5 * 5, monster.sy + 75
     
     #### 객체별 충돌처리 ####
     def handle_collision(monster, other, group):
@@ -88,15 +92,18 @@ class Big_Skel_Sword:
                 game_world.add_object(damageEffect, 0)
     
     def update(monster):
+        monster.sx, monster.sy = monster.x - server.map.window_left, monster.y - server.map.window_bottom
+        
         if monster.hp <= 0:
             game_world.remove_collision_object(monster)
             game_world.remove_object(monster)
-            destroyEffect = effects.DestroyEffect(monster.x, monster.y)
+            destroyEffect = effects.DestroyEffect(monster.sx, monster.sy)
             game_world.add_object(destroyEffect, 0)
             
             #### remove_collision_object가 객체의 충돌영역을 지워주지 못해서 객체를 다른데로 보냄
             monster.x = - 99999
             monster.y = - 99999
+            monster.sx, monster.sy = monster.x - server.map.window_left, monster.y - server.map.window_bottom
             
         
         if monster.isAttacked:
@@ -111,8 +118,8 @@ class Big_Skel_Sword:
 
     def draw(monster):
         if monster.isAttacked:
-            monster.idleShotImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.x, monster.y, 33 * 5, 30 * 5)
+            monster.idleShotImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.sx, monster.sy, 33 * 5, 30 * 5)
         else:
-            monster.idleImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.x, monster.y, 33 * 5, 30 * 5)
+            monster.idleImage.clip_composite_draw(int(monster.frame) * 33, 0, 33, 30, 0, 'h', monster.sx, monster.sy, 33 * 5, 30 * 5)
         monster.lifeBar.draw(monster)
         draw_rectangle(*monster.get_bb())

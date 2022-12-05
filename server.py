@@ -1,7 +1,10 @@
+background = None
+map = None
+
 cursor    = None
 player    = None
-ground    = None
-stepstone = None
+ground    = []
+stepstone = []
 monster   = None
 
 sword         = None
