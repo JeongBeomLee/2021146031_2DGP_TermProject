@@ -9,7 +9,6 @@ import ui
 import effects
 import server
 
-
 # Player Run Speed
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH  = 30.0
@@ -82,6 +81,9 @@ class Player:
         player.isOnStepstone = False
         player.isOnGround    = True
         player.sDown         = False
+        player.canMoveX       = True
+        player.canMoveY       = True
+        player.isOn = True
         
         player.hpMax = 100
         player.hp    = 100
@@ -92,18 +94,17 @@ class Player:
         player.direction  = direction['RIGHT']
         
         player.hand       = player_hand.Hand(player)
-        player.feet       = player_feet.Feet(player)
         player.weaponSort = weaponSort['sword']
         player.weapon     = weapons.ShortSword()
         
+        feet = player_feet.Feet(player.x, player.y)
+        game_world.add_object(feet, 1)
+        game_world.add_collision_pairs(feet, server.stepstone, 'feet:stepstone')
         #### UI ####
         player.lifeBar           = ui.PlayerLifeBar(player)
         player.dashBar           = ui.PlayerDashBar(player)
         player.equippedWeaponBar = ui.EquippedWeaponBar(player)
         
-        for ground in server.ground:
-            game_world.add_collision_pairs(player.feet, ground, 'feet:ground')
-        # game_world.add_collision_pairs(player.feet, server.stepstone, 'feet:stepstone')
 
     #### 바운딩 박스 받기 ####
     def get_bb(player):
@@ -111,7 +112,17 @@ class Player:
     
     #### 객체별 충돌처리 ####
     def handle_collision(player, other, group):
-        if group == 'player:monster':
+        if group == 'player:ground':
+            server.player.y = other.sy + other.h + 50 + 1   ### 땅의 바운딩박스 top + 플레이어 피봇 기준 발위치 + 1 pixel
+            if server.player.state == state['JUMP']:
+                server.player.state = state['IDLE']
+            server.player.jumpHeight    = 0
+            server.player.jumpCount     = 0
+            server.player.isOnGround    = True
+            server.player.isOnStepstone = False
+            
+        
+        if group == 'player:ball':
             if player.unheatTimer == 0:
                 player.isAttacked = True
                 player.hp -= other.power
@@ -123,11 +134,13 @@ class Player:
         player.sx, player.sy = player.x - server.map.window_left, player.y - server.map.window_bottom
         
         if not player.isOnGround and not player.isOnStepstone:
-            player.state = state['JUMP']
+            player.jumpHeight -= 1 # h 감소
         
         if player.hp <= 0:
             if player.state != state['DIE']:
                 player.state = state['DIE']
+                player.canMoveX = False;
+                player.canMoveY = False;
                 dieEffect = effects.DestroyEffect(player.sx, player.sy)
                 game_world.add_object(dieEffect, 1)
         
@@ -152,20 +165,22 @@ class Player:
 
         if player.state == state['RUN']:
             player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 8
-            
-        player.jumpHeight -= 1 # h 감소
+            player.isOnGround    = False
+            player.isOnStepstone = False
+        
                
         if player.state == state['DASH']:
-            player.x += player.dx
-            player.y += player.dy
-            
-            player.dashTimer += game_framework.frame_time
-            
-            if player.dashTimer >= 0.1:
-                player.dx = 0
-                player.dy = 0
-                player.dashTimer = 0
-                player.state = state['JUMP']
+            if player.canMoveX:
+                player.x += player.dx
+                player.y += player.dy
+                
+                player.dashTimer += game_framework.frame_time
+                
+                if player.dashTimer >= 0.1:
+                    player.dx = 0
+                    player.dy = 0
+                    player.dashTimer = 0
+                    player.state = state['JUMP']
         
         if player.dashCount < 2:
             player.dashPlusTimer += game_framework.frame_time
@@ -173,16 +188,22 @@ class Player:
                 player.dashCount += 1
                 player.dashPlusTimer = 0
                 
+        
         if player.state != state['DASH']:
-            player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
-            player.y += 0.98 * 1 * (player.jumpHeight)
+            if player.canMoveX:
+                player.x += player.speedLR * RUN_SPEED_PPS * game_framework.frame_time
+            if player.canMoveY:
+                player.y += 0.98 * 1 * (player.jumpHeight)
             
             if server.map.sort == mapSort['VILLIAGE']:
                 player.x = clamp(0, player.x, 1600 * 4)
                 player.y = clamp(0, player.y, 900 * 2)
-                
-        #### 발 업데이트 (바닥충돌) ####
-        player.feet.update(player)
+            if server.map.sort == mapSort['MOVE']:
+                player.x = clamp(275, player.x, 1400)
+                player.y = clamp(0, player.y, 625)
+            if server.map.sort == mapSort['BOSS']:
+                player.x = clamp(200, player.x, 1400)
+                player.y = clamp(0, player.y, 800)
                 
         #### 무기 업데이트 ####
         if player.weaponSort == weaponSort['sword'] or player.weaponSort == weaponSort['pistol']:
@@ -195,70 +216,70 @@ class Player:
         player.equippedWeaponBar.update(player)
 
     def draw(player):
-        #### 한손검은 휘두를 때 마다 앞에 그려줄지 뒤에 그려줄지 정해줌 ####
-        if (player.weaponSort == weaponSort['sword'] and player.weapon.backrender == True) or player.weaponSort == weaponSort['pistol']:
-            player.hand.image.opacify(player.opacifyF)
-            player.hand.draw()
-            player.weapon.draw(player)
-        
-        #### IDLE ####
-        if player.state == state['IDLE']:
-            player.idleImage.opacify(player.opacifyF)
-            if player.direction == direction['LEFT']:
-                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'h', player.sx, player.sy, 75, 100)
-            if player.direction == direction['RIGHT']:
-                player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'n', player.sx, player.sy, 75, 100)
-        
-        #### RUN ####    
-        if player.state == state['RUN']:
-            player.runImage.opacify(player.opacifyF)
-            if player.direction == direction['LEFT']:
-                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
-                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'h', player.sx + 40, player.sy - 25, 70, 65)
-            if player.direction == direction['RIGHT']:
-                player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
-                player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'n', player.sx - 40, player.sy - 25, 70, 65)
-                
-        #### JUMP ####
-        if player.state == state['JUMP']:
-            player.jumpImage.opacify(player.opacifyF)
-            if player.direction == direction['LEFT']:
-                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
-            if player.direction == direction['RIGHT']:
-                player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
-        
-        #### DASH ####
-        if player.state == state['DASH']:
-            player.dashImage.opacify(player.opacifyF)
-            if player.direction == direction['LEFT']:
-                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
-            if player.direction == direction['RIGHT']:
-                player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
-        
-        #### DIE ####
-        if player.state == state['DIE']:
-            player.dieImage.opacify(player.opacifyF)
-            if player.direction == direction['LEFT']:
-                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'h', player.sx, player.sy, 115, 70)
-            if player.direction == direction['RIGHT']:
-                player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'n', player.sx, player.sy, 115, 70)
+        if player.isOn:
+            #### 한손검은 휘두를 때 마다 앞에 그려줄지 뒤에 그려줄지 정해줌 ####
+            if (player.weaponSort == weaponSort['sword'] and player.weapon.backrender == True) or player.weaponSort == weaponSort['pistol']:
+                player.hand.image.opacify(player.opacifyF)
+                player.hand.draw()
+                player.weapon.draw(player)
+            
+            #### IDLE ####
+            if player.state == state['IDLE']:
+                player.idleImage.opacify(player.opacifyF)
+                if player.direction == direction['LEFT']:
+                    player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'h', player.sx, player.sy, 75, 100)
+                if player.direction == direction['RIGHT']:
+                    player.idleImage.clip_composite_draw(int(player.frame) * 15, 0, 15, 20, 0, 'n', player.sx, player.sy, 75, 100)
+            
+            #### RUN ####    
+            if player.state == state['RUN']:
+                player.runImage.opacify(player.opacifyF)
+                if player.direction == direction['LEFT']:
+                    player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
+                    player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'h', player.sx + 40, player.sy - 25, 70, 65)
+                if player.direction == direction['RIGHT']:
+                    player.runImage.clip_composite_draw (int(player.frame) * 17, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
+                    player.dustImage.clip_composite_draw(int(player.frame) * 14, 0, 14, 13, 0, 'n', player.sx - 40, player.sy - 25, 70, 65)
+                    
+            #### JUMP ####
+            if player.state == state['JUMP']:
+                player.jumpImage.opacify(player.opacifyF)
+                if player.direction == direction['LEFT']:
+                    player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
+                if player.direction == direction['RIGHT']:
+                    player.jumpImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
+            
+            #### DASH ####
+            if player.state == state['DASH']:
+                player.dashImage.opacify(player.opacifyF)
+                if player.direction == direction['LEFT']:
+                    player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'h', player.sx, player.sy, 85, 100)
+                if player.direction == direction['RIGHT']:
+                    player.dashImage.clip_composite_draw(0, 0, 17, 20, 0, 'n', player.sx, player.sy, 85, 100)
+            
+            #### DIE ####
+            if player.state == state['DIE']:
+                player.dieImage.opacify(player.opacifyF)
+                if player.direction == direction['LEFT']:
+                    player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'h', player.sx, player.sy, 115, 70)
+                if player.direction == direction['RIGHT']:
+                    player.dieImage.clip_composite_draw(0, 0, 23, 14, 0, 'n', player.sx, player.sy, 115, 70)
 
-        
-        #### 무기 그리기 ####
-        if player.weaponSort == weaponSort['sword'] and player.weapon.backrender == False:
-            player.hand.image.opacify(player.opacifyF)
-            player.hand.draw()
-            player.weapon.draw(player)
-        elif player.weaponSort == weaponSort['sickle'] or player.weaponSort == weaponSort['lightbringer']:
-            player.weapon.draw(player)
+            
+            #### 무기 그리기 ####
+            if player.weaponSort == weaponSort['sword'] and player.weapon.backrender == False:
+                player.hand.image.opacify(player.opacifyF)
+                player.hand.draw()
+                player.weapon.draw(player)
+            elif player.weaponSort == weaponSort['sickle'] or player.weaponSort == weaponSort['lightbringer']:
+                player.weapon.draw(player)
+            
+            draw_rectangle(*player.get_bb())
             
         #### UI ####
         player.lifeBar.draw(player)
         player.dashBar.draw()
         player.equippedWeaponBar.draw()
-        
-        # draw_rectangle(*player.get_bb())
-        player.feet.draw()
         
                 
     def handle_event(player, event):
@@ -286,6 +307,8 @@ class Player:
                         player.jumpHeight = 25
                         player.frame = 0
                         player.jumpCount += 1
+                        player.isOnGround    = False
+                        player.isOnStepstone = False
             ##### A 눌림 #####  
             if event.key == SDLK_a:
                 player.speedLR  -= 1
@@ -315,14 +338,18 @@ class Player:
             if event.key == SDLK_SPACE:
                 if player.sDown and player.isOnStepstone:
                     player.state = state['JUMP']
-                    player.y -= 26
+                    player.y -= 30
+                    player.isOnGround    = False
+                    player.isOnStepstone = False
                 else:
                     if player.jumpCount != 2:
                         if player.state != state['DASH']:
                             player.state = state['JUMP']
                             player.jumpHeight = 25
                             player.frame = 0
-                            player.jumpCount += 1       
+                            player.jumpCount += 1
+                            player.isOnGround    = False
+                            player.isOnStepstone = False
             
         elif event.type == SDL_KEYUP:
             ##### W 올림 #####
@@ -380,6 +407,8 @@ class Player:
                     player.dashCount -= 1
                     player.dx, player.dy = ((mouseX - player.sx) / math.sqrt((mouseX - player.sx)**2 + (900 - mouseY - player.sy) ** 2) * 45,
                            (900 - mouseY - player.sy) / math.sqrt((mouseX - player.sx)**2 + (900 - mouseY - player.sy)**2) * 45)
+                    player.isOnGround    = False
+                    player.isOnStepstone = False
                         
         #### 마우스 왼쪽 버튼 올림 ####
         elif event.type == SDL_MOUSEBUTTONUP:

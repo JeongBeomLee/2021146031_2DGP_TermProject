@@ -8,6 +8,10 @@ from monster  import Big_Skel_Sword
 from cursor   import ShootingCursor
 from map      import VilliageTileMap
 from objects  import Ground
+from objects  import Trigger
+from background import VilliageSky
+from background import VilliageBackTrees
+from background import VilliageFrontTrees
 
 
 
@@ -24,6 +28,14 @@ def handle_events():
 
 # 초기화
 def enter():
+    villiageSky = VilliageSky()
+    server.background.append(villiageSky)
+    villiageBackTrees = VilliageBackTrees()
+    server.background.append(villiageBackTrees)
+    villiageFrontTrees = VilliageFrontTrees()
+    server.background.append(villiageFrontTrees)
+    game_world.add_objects(server.background, 0)
+    
     server.map       = VilliageTileMap()
     game_world.add_object(server.map, 0)
     
@@ -31,16 +43,19 @@ def enter():
     server.ground.append(ground)
     game_world.add_objects(server.ground, 0)
     
+    server.trigger = Trigger(4000, 0, 2400, 32 * 5)
+    # server.trigger = Trigger(700, 0, 800, 300)
+    game_world.add_object(server.trigger, 0)
+    
     server.cursor    = ShootingCursor()
     game_world.add_object(server.cursor, 1)
+    
     server.player    = Player()
     game_world.add_object(server.player, 1)
     
-    server.monster   = Big_Skel_Sword()
-    game_world.add_object(server.monster, 1)
-    
-    
-    # game_world.add_collision_pairs(server.player,  server.ground,    'player:ground')
+    game_world.add_collision_pairs(server.player, server.trigger, 'player:trigger')
+    game_world.add_collision_pairs(server.player, server.ground, 'player:ground')
+
     # game_world.add_collision_pairs(server.player,  server.stepstone, 'player:stepstone')
     
     # game_world.add_collision_pairs(server.player,  server.monster,   'player:monster')

@@ -61,7 +61,7 @@ def remove_collision_object(o):
         if o in pairs[0]:
             pairs[0].remove(o)
         if o in pairs[1]:
-            pairs[1].remove(o)
+            pairs[1].remove(o) 
             
 def remove_collision_pairs(a, b, group):
     if group not in collision_group:
@@ -72,23 +72,51 @@ def remove_collision_pairs(a, b, group):
             collision_group[group][1].clear()
         else:
             if b in collision_group[group][1]:
-                collision_group[group][1].remove(b)
+                collision_group[group][1].clear()
             
     if b:
         if type(a) is list:
             collision_group[group][0].clear()
         else:
             if a in collision_group[group][0]:
-                collision_group[group][0].remove(a)
+                collision_group[group][0].clear()
 
 def clear():
     for o in all_objects():
         del o
     for layer in objects:
         layer.clear()
+        
+    for pairs in collision_group.values():
+        for a in pairs[0]:
+            remove_collision_object(a)
+        for b in pairs[1]:
+            remove_collision_object(b)
+                
+    import server
+    server.background.clear()
+    server.background = []
+    server.button.clear()
+    server.button  = []
+    server.map = None
+
+    server.cursor    = None
+    server.player    = None
+    server.trigger   = None
+    server.monster   = None
+    server.wall.clear()
+    server.wall      = []
+    server.ground.clear()
+    server.ground    = []
+    server.stepstone.clear()
+    server.stepstone = []
+
+    server.sword         = None
+    server.sickle        = None
+    server.pistol        = None
+    server.lightbringher = None
+        
 
 def update():
     for game_object in all_objects():
         game_object.update()
-
-

@@ -18,19 +18,19 @@ class EnemyLifeBar:
         if EnemyLifeBar.backImage == None:
             EnemyLifeBar.backImage = load_image("resources/images/gameScene/ui/LifeBarBack.png")
             
-        ui.x    = object.sx - 50
-        ui.y    = object.sy - (object.h // 2) - 50
+        ui.x    = 0
+        ui.y    = 0
         ui.hp   = object.hp
         ui.isOn = True    
             
     def update(ui, object):
-        ui.x  = object.sx - 50
-        ui.y  = object.sy - (object.h // 2) - 50
+        ui.x  = object.sx - 200
+        ui.y  = object.sy - (object.h // 2) - 50 - 150
         ui.hp = object.hp
     
     def draw(ui, object):
-        ui.backImage.clip_draw_to_origin(0, 0, 1, 10, ui.x - 5, ui.y - 5,  110, 20)
-        ui.image.clip_draw_to_origin(0, 0, 1, 10, ui.x, ui.y,  ui.hp / object.hpMax * 100, 10)
+        ui.backImage.clip_draw_to_origin(0, 0, 1, 10, ui.x - 5, ui.y - 5,  350, 20)
+        ui.image.clip_draw_to_origin(0, 0, 1, 10, ui.x, ui.y,  ui.hp / object.hpMax * 340, 10)
         
 class PlayerLifeBar:
     image         = None
@@ -176,6 +176,5 @@ class EquippedWeaponBar:
             ui.pistolImage.clip_draw(0, 0, 34, 24, ui.x - 30, ui.y - 30, 136, 96)
             ui.font.draw(ui.x - 102, ui.y - 62, 60, 20, f'{weapons.Pistol.bulletCount} / 10', (255, 255, 255))
             
-        # ui.font.draw(800, 450, 800, 450, f'(Time: {get_time():.2f})', (0, 0, 0))
-        
+
                 

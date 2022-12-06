@@ -329,7 +329,7 @@ class DestroyEffect:
     
     def draw(effect):
         if effect.isOn:
-            effect.image.clip_composite_draw(int(effect.frame) * 40, 0, 40, 40, 0, 'n', effect.x, effect.y, 200, 200)
+            effect.image.clip_composite_draw(int(effect.frame) * 40, 0, 40, 40, 0, 'n', effect.x, effect.y, 200 * 4, 200 * 4)
             
 class RedWarningOnHit:
     leftImage  = None
@@ -383,7 +383,12 @@ class Damage:
             effect.x += effect.dx
             effect.dy -= 1
             effect.opacipyF -= 0.02
+            
+            
         
     def draw(effect):
+        effect.sx = effect.x - server.map.window_left
+        effect.sy = effect.y - server.map.window_bottom
+        
         if effect.isOn:
-            effect.font.draw(effect.x, effect.y, 35, 60, f'{effect.text}', (255, 255, 255), effect.opacipyF)
+            effect.font.draw(effect.sx, effect.sy, 35, 60, f'{effect.text}', (255, 255, 255), effect.opacipyF)

@@ -1,30 +1,11 @@
 from pico2d import *
 import server
+import game_world
+import game_framework
 
-# class Ground:
-#     groundImage = None
-    
-#     def __init__(self, x, y, w, h):
-#         if Ground.groundImage == None:
-#             Ground.groundImage = load_image('test_ground.png')
-#         self.sx = x
-#         self.sy = y
-#         self.w  = w
-#         self.h  = h
-    
-#     def update(self):
-#         pass
-    
-#     def draw(self):
-#         self.groundImage.clip_draw(0, 0, self.groundImage.w, self.groundImage.h, self.x, self.y, self.groundImage.w * 20, self.groundImage.h * 10)
-#         draw_rectangle(*self.get_bb())
-        
-#     def get_bb(self):
-#         return self.x - self.groundImage.w * 10, self.y - self.groundImage.h * 5, self.x + self.groundImage.w * 10 - 1, self.y + self.groundImage.h * 5
-    
-#     #### 객체별 충돌처리 ####
-#     def handle_collision(self, other, group):
-#         pass
+
+# 맵
+mapSort = {'VILLIAGE' : 0, 'MOVE' : 1, 'JUMP' : 2, 'DASH' : 3, 'BATTLE' : 4, 'BOSS' : 5}
     
 class Ground:
     
@@ -49,27 +30,134 @@ class Ground:
     #### 객체별 충돌처리 ####
     def handle_collision(self, other, group):
         pass
-    
+
 class Stepstone:
-    stepstoneImage = None
     
-    def __init__(self):
-        if Stepstone.stepstoneImage == None:
-            Stepstone.stepstoneImage = load_image('test_stepstone.png')
-        self.x = 800
-        self.y = 450
+    def __init__(self, x, y, w):
+        self.x  = x
+        self.y  = y
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
+        self.w  = w
     
     def update(self):
-        pass
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
     
     def draw(self):
-        self.stepstoneImage.clip_draw(0, 0, self.stepstoneImage.w, self.stepstoneImage.h, self.x, self.y, self.stepstoneImage.w * 5, self.stepstoneImage.h * 5)
         draw_rectangle(*self.get_bb())
-        pass
-    
+        
     def get_bb(self):
-        return self.x - self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2 - 5,  self.x + self.stepstoneImage.w * 5 / 2, self.y + self.stepstoneImage.h * 5 / 2
+        return self.sx, self.sy - 5, self.sx + self.w + 1, self.sy
     
     #### 객체별 충돌처리 ####
     def handle_collision(self, other, group):
         pass
+
+DGE_TIME_PER_ACTION     = 125
+DGE_ACTION_PER_TIME     = 1.0 / DGE_TIME_PER_ACTION
+DGE_FRAMES_PER_ACTION   = 28
+
+class DungeonEat:
+    image = None
+    eat_sound = None
+    def __init__(self, x, y):
+        if DungeonEat.image == None:
+            DungeonEat.image = load_image("resources/images/Villiage/DungeonEat.png")
+        self.x     = x
+        self.y     = y + 175
+        self.frame = 0
+        if DungeonEat.eat_sound is None:
+            DungeonEat.eat_sound = load_wav("resources/sounds/DungreedSound/nyam.wav")
+            DungeonEat.eat_sound.set_volume(32)
+        
+
+        
+    def update(self):
+        self.frame = (self.frame + DGE_FRAMES_PER_ACTION * DGE_ACTION_PER_TIME) % 29
+    
+    def draw(self):
+        self.sx    = self.x - server.map.window_left
+        self.sy    = self.y - server.map.window_bottom
+        self.image.clip_draw(int(self.frame) * 120, 0, 120, 90, self.sx, self.sy, 600, 450)
+        if self.frame >= 9:
+            server.player.isOn = False
+            DungeonEat.eat_sound.play()
+        if self.frame >= 28:
+            import move_state
+            
+            game_world.remove_object(self)
+            game_framework.change_state(move_state)
+        
+    def get_bb(self):
+        pass
+    
+    def handle_collision(self, other, group):
+        pass
+
+class Trigger:
+    
+    out_sound = None
+    def __init__(self, x, y, w, h):
+        self.x  = x
+        self.y  = y
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
+        self.w  = w
+        self.h  = h
+        self.isOn = False
+        
+        if Trigger.out_sound is None:
+            Trigger.out_sound = load_wav("resources/sounds/DungreedSound/DungeonOut.wav")
+            Trigger.out_sound.set_volume(32)
+    
+    def update(self):
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
+    
+    def draw(self):
+        draw_rectangle(*self.get_bb())
+        
+    def get_bb(self):
+        return self.sx, self.sy, self.sx + self.w + 1, self.sy + self.h
+    
+    #### 객체별 충돌처리 ####
+    def handle_collision(self, other, group):
+        if group == 'player:trigger':
+            if server.map.sort == mapSort['VILLIAGE']:
+                if not self.isOn:
+                    Trigger.out_sound.play()
+                    server.player.canMove = False
+                    dungeonEat = DungeonEat(server.player.x, server.player.y)
+                    game_world.add_object(dungeonEat, 0)
+                    self.isOn = True
+                
+
+class Door:
+    
+    def __init__(self, x, y, w, h):
+        self.x  = x
+        self.y  = y
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
+        self.w  = w
+        self.h  = h
+    
+    def update(self):
+        self.sx = self.x - server.map.window_left
+        self.sy = self.y - server.map.window_bottom
+    
+    def draw(self):
+        draw_rectangle(*self.get_bb())
+        
+    def get_bb(self):
+        return self.sx, self.sy, self.sx + self.w + 1, self.sy + self.h
+    
+    #### 객체별 충돌처리 ####
+    def handle_collision(self, other, group):
+        if group == 'player:door':
+            if server.map.sort == mapSort['MOVE']:
+                import boss_state
+                game_framework.change_state(boss_state)
+        
+    

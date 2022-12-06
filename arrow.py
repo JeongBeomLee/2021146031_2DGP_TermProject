@@ -19,7 +19,7 @@ class Arrow:
         arrow.speed   = speed
         arrow.deg     = deg - 10
         arrow.isOn    = True
-        arrow.power   = player.power + (5 * speed)
+        arrow.power   = player.power + (100 * speed)
         
         if player.direction == direction['LEFT']:
             arrow.direction = direction['LEFT']
